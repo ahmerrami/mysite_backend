@@ -40,7 +40,7 @@ class Stage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     traite = models.BooleanField(default=False)
     commentaire = models.TextField(null=True, blank=True)
-    custom_message = models.TextField(null=True, blank=True)
+    #custom_message = models.TextField(null=True, blank=True)
 
     class Meta:
         permissions = [
