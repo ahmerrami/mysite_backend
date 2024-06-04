@@ -7,12 +7,14 @@ from .validators import validate_file_extension
 
 class Ville(models.Model):
     ville = models.CharField(max_length=15, unique=True)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.ville
 
 class Periode(models.Model):
     periode = models.CharField(max_length=100, unique=True)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.periode

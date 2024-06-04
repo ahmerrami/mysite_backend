@@ -14,12 +14,17 @@ from .models import Ville, Periode
 from .serializers import VilleSerializer, PeriodeSerializer, StageSerializer
 
 class VilleListAPIView(generics.ListAPIView):
-    queryset = Ville.objects.all()
     serializer_class = VilleSerializer
 
+    def get_queryset(self):
+        # Filter Ville instances where 'active' field is True
+        return Ville.objects.filter(active=True)
+
 class PeriodeListAPIView(generics.ListAPIView):
-    queryset = Periode.objects.all()
     serializer_class = PeriodeSerializer
+    def get_queryset(self):
+        # Filter Periode instances where 'active' field is True
+        return Periode.objects.filter(active=True)
 
 class StageCreateAPIView(APIView):
     def post(self, request, *args, **kwargs):

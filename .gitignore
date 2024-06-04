@@ -1,5 +1,6 @@
-# ignore ALL .log files
+# ignore ALL .log and .pyc files
 *.log
+*.pyc
 
 # ignore ALL files in ANY directory named temp
 temp/
