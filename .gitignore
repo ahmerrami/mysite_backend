@@ -5,3 +5,6 @@
 # ignore ALL files in ANY directory named temp
 temp/
 media/uploads/
+
+# Ignore Django migration files
+*/migrations/
