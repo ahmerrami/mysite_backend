@@ -26,7 +26,7 @@ SECRET_KEY = '7id7njj&d53myulpn^1uqaaiprhhvnb29%!1tt%1yzz6he$lu'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['errami.pythonanywhere.com']
+ALLOWED_HOSTS = ['errami.pythonanywhere.com','stages-dev.supratourstravel.com']
 
 CORS_ALLOWED_ORIGINS = [
     #'http://localhost:5173',
