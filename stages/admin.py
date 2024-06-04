@@ -1,4 +1,3 @@
-from django import forms
 from django.contrib import admin
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
@@ -56,37 +55,6 @@ def send_mass_email(modeladmin, request, queryset):
 
 send_mass_email.short_description = "Envoyer un email aux stagiaires sélectionnés"
 
-def send_custom_email(modeladmin, request, queryset):
-    # Fetch the custom message from the admin interface
-    message = request.POST.get('custom_message', '')
-
-    for stage in queryset:
-        sujet = 'Candidature de stage'
-        # Use the custom message instead of the hardcoded one
-        full_message = f'{message}\n\nDétails du stage :\nNom : {stage.nom}\nPrénom : {stage.prenom}\nEmail : {stage.email}\nTéléphone : {stage.tel}\n'
-        destinataires = [stage.email]  # Ajouter l'email du candidat
-        cc_destinataires = []  # Vous pouvez ajouter d'autres destinataires en copie
-        cci_destinataires = ['ahmederrami@gmail.com']  # Vous pouvez ajouter d'autres destinataires en copie cachée
-
-        email = EmailMessage(
-            sujet,
-            full_message,
-            'supratourstravel2009@gmail.com',
-            to=destinataires,
-            cc=cc_destinataires,
-            bcc=cci_destinataires
-        )
-
-        try:
-            email.send()
-        except Exception as e:
-            modeladmin.message_user(request, f"Erreur lors de l'envoi à {stage.email}: {e}", level='error')
-
-    modeladmin.message_user(request, "Emails envoyés avec succès")
-
-send_custom_email.short_description = "Envoyer un email personnalisé aux stagiaires sélectionnés"
-
-
 class StageAdmin(ImportExportModelAdmin):
     resource_class = StageResource
     list_display = ('nom', 'tel', 'niveau', 'specialite', 'ville', 'selectedPeriode', 'created_at', 'cv', 'lettre', 'traite', 'commentaire')
@@ -120,12 +88,6 @@ class StageAdmin(ImportExportModelAdmin):
     def has_view_permission(self, request, obj=None):
         # Allow view permission for all users
         return True
-
-    def get_form(self, request, obj=None, **kwargs):
-        # Add a custom field for the message
-        form = super().get_form(request, obj, **kwargs)
-        form.fields['custom_message'] = forms.CharField(label='Custom Message', widget=forms.Textarea)
-        return form
 
     search_help_text = ""  # Define a search help text, even if it is empty
 
