@@ -61,6 +61,7 @@ def envoyer_email_nouvel_enregistrement(sender, instance, created, **kwargs):
             f'Détails du stage :\n'
             f'Nom : {instance.nom}\n'
             f'Prénom : {instance.prenom}\n'
+            f'Ville : {instance.ville}\n'
             f'Email : {instance.email}\n'
             f'Téléphone : {instance.tel}\n'
         )
