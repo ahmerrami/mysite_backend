@@ -3,7 +3,9 @@ from django.core.mail import EmailMessage
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from .validators import validate_file_extension
+import os
 
+# Models
 
 class Ville(models.Model):
     ville = models.CharField(max_length=15, unique=True)
@@ -18,6 +20,18 @@ class Periode(models.Model):
 
     def __str__(self):
         return self.periode
+
+# Custom file upload path function
+def rename_upload_path(instance, filename, prefix):
+    ext = filename.split('.')[-1]
+    new_filename = f"{instance.id}_{prefix}_{instance.nom}.{ext}"
+    return os.path.join('uploads/', new_filename)
+
+def rename_upload_path_cv(instance, filename):
+    return rename_upload_path(instance, filename, 'cv')
+
+def rename_upload_path_lettre(instance, filename):
+    return rename_upload_path(instance, filename, 'lettre')
 
 class Stage(models.Model):
     civilite = models.CharField(max_length=10)
@@ -34,13 +48,12 @@ class Stage(models.Model):
     specialite = models.CharField(max_length=50)
     villeEcole = models.ForeignKey(Ville, on_delete=models.CASCADE, related_name="ville_ecole")
     selectedPeriode = models.ForeignKey(Periode, on_delete=models.CASCADE, related_name="stages")
-    cv = models.FileField(upload_to='uploads/', default=None, validators=[validate_file_extension])
-    lettre = models.FileField(upload_to='uploads/', default=None, validators=[validate_file_extension])
+    cv = models.FileField(upload_to=rename_upload_path_cv, validators=[validate_file_extension])
+    lettre = models.FileField(upload_to=rename_upload_path_lettre, validators=[validate_file_extension])
     isChecked = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     traite = models.BooleanField(default=False)
     commentaire = models.TextField(null=True, blank=True)
-    #custom_message = models.TextField(null=True, blank=True)
 
     class Meta:
         permissions = [
@@ -48,11 +61,10 @@ class Stage(models.Model):
         ]
 
     def __str__(self):
-        return "CIN: "+self.cin+", Nom: "+self.nom+", Date enregistrement: "+str(self.created_at)
+        return f"CIN: {self.cin}, Nom: {self.nom}, Date enregistrement: {self.created_at}"
 
-
+# Signal receiver function
 @receiver(post_save, sender=Stage)
-
 def envoyer_email_nouvel_enregistrement(sender, instance, created, **kwargs):
     if created:
         sujet = 'Candidature de stage'
@@ -65,10 +77,9 @@ def envoyer_email_nouvel_enregistrement(sender, instance, created, **kwargs):
             f'Email : {instance.email}\n'
             f'Téléphone : {instance.tel}\n'
         )
-        destinataires = []  # Remplacez par vos destinataires réels
-        destinataires.append(instance.email)  # Ajouter l'email du candidat
-        cc_destinataires = []  # Remplacez par vos destinataires réels
-        cci_destinataires = ['ahmederrami@gmail.com','y.afekhar@supratourstravel.com']  # Remplacez par vos destinataires réels
+        destinataires = [instance.email]
+        cc_destinataires = []  # Add actual CC recipients if needed
+        cci_destinataires = ['ahmederrami@gmail.com', 'y.afekhar@supratourstravel.com']
 
         email = EmailMessage(
             sujet,
