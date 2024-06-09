@@ -24,7 +24,7 @@ class Periode(models.Model):
 # Custom file upload path function
 def rename_upload_path(instance, filename, prefix):
     ext = filename.split('.')[-1]
-    new_filename = f"{instance.id}_{prefix}_{instance.nom}.{ext}"
+    new_filename = f"{instance.cin}_{instance.nom}_{prefix}.{ext}"
     return os.path.join('uploads/', new_filename)
 
 def rename_upload_path_cv(instance, filename):
