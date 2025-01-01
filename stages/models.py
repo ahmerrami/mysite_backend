@@ -12,7 +12,7 @@ class Ville(models.Model):
     active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.ville
+        return f"{self.ville}"
 
 class Periode(models.Model):
     periode = models.CharField(max_length=100, unique=True)
@@ -25,7 +25,7 @@ class Periode(models.Model):
 def rename_upload_path(instance, filename, prefix):
     ext = filename.split('.')[-1]
     new_filename = f"{instance.cin}_{instance.nom}_{prefix}.{ext}"
-    return os.path.join('uploads/', new_filename)
+    return os.path.join('uploads/stages/', new_filename)
 
 def rename_upload_path_cv(instance, filename):
     return rename_upload_path(instance, filename, 'cv')

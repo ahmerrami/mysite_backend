@@ -26,11 +26,12 @@ SECRET_KEY = '7id7njj&d53myulpn^1uqaaiprhhvnb29%!1tt%1yzz6he$lu'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['errami.pythonanywhere.com','stages-dev.supratourstravel.com']
+ALLOWED_HOSTS = ['errami.pythonanywhere.com']
 
 CORS_ALLOWED_ORIGINS = [
-    #'http://localhost:5173',
+    'http://localhost:5173',
     'https://www.supratourstravel.com',
+    'https://supratourstravel.com',
     # Add other allowed origins as needed
 ]
 
@@ -49,6 +50,8 @@ INSTALLED_APPS = [
     'corsheaders',
 	'accounts',
 	'stages',
+	'aos',
+	'omra',
 	'import_export',
 ]
 
