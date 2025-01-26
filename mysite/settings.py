@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 from pathlib import Path
 import os
+from decouple import config
+
+
+SOCIETE = config('SOCIETE')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '7id7njj&d53myulpn^1uqaaiprhhvnb29%!1tt%1yzz6he$lu'
+#SECRET_KEY = '7id7njj&d53myulpn^1uqaaiprhhvnb29%!1tt%1yzz6he$lu'
+SECRET_KEY = config('SECRET_KEY')
 # os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -52,6 +57,7 @@ INSTALLED_APPS = [
 	'stages',
 	'aos',
 	'omra',
+	'ovs',
 	'import_export',
 ]
 
@@ -111,10 +117,10 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'errami$siteweb',
-        'USER': 'errami',
-        'PASSWORD': 'RQqx2IAp6gLgEESs',
-        'HOST': 'errami.mysql.pythonanywhere-services.com',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
         'PORT': '3306',  # Port par défaut pour MySQL
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
@@ -173,13 +179,9 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = '/home/errami/mysite/static'
 STATIC_URL = '/static/'
 
-
-EMAIL_FROM = os.environ.get('AUTHEMAIL_DEFAULT_EMAIL_FROM')
-EMAIL_BCC = os.environ.get('AUTHEMAIL_DEFAULT_EMAIL_BCC')
-
-EMAIL_HOST = os.environ.get('AUTHEMAIL_EMAIL_HOST')
-EMAIL_PORT = os.environ.get('AUTHEMAIL_EMAIL_PORT')
-EMAIL_HOST_USER = os.environ.get('AUTHEMAIL_EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('AUTHEMAIL_EMAIL_HOST_PASSWORD')
+EMAIL_HOST = config('AUTHEMAIL_EMAIL_HOST')
+EMAIL_PORT = config('AUTHEMAIL_EMAIL_PORT')
+EMAIL_HOST_USER = config('AUTHEMAIL_EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('AUTHEMAIL_EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False

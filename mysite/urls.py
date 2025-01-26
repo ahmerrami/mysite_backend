@@ -12,4 +12,5 @@ urlpatterns = [
 	path('api/stages/', include('stages.urls')),
 	path('api/aos/', include('aos.urls')),
 	path('api/omra/', include('omra.urls')),
+	path('api/ovs/', include('ovs.urls')),
 ]
