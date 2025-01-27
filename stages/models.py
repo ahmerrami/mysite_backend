@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.mail import EmailMessage
 from django.dispatch import receiver
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from .validators import validate_file_extension
 import os
 
@@ -79,7 +79,7 @@ def envoyer_email_nouvel_enregistrement(sender, instance, created, **kwargs):
         )
         destinataires = [instance.email]
         cc_destinataires = []  # Add actual CC recipients if needed
-        cci_destinataires = ['ahmederrami@gmail.com', 'y.afekhar@supratourstravel.com']
+        cci_destinataires = ['ahmederrami@gmail.com']
 
         email = EmailMessage(
             sujet,
@@ -91,3 +91,14 @@ def envoyer_email_nouvel_enregistrement(sender, instance, created, **kwargs):
         )
 
         email.send()
+
+# Signal pour supprimer les fichiers liés (cv et lettre) après la suppression d'un Stage
+@receiver(post_delete, sender=Stage)
+def supprimer_fichiers_stage(sender, instance, **kwargs):
+    # Supprime le fichier CV s'il existe
+    if instance.cv and os.path.isfile(instance.cv.path):
+        os.remove(instance.cv.path)
+
+    # Supprime le fichier lettre s'il existe
+    if instance.lettre and os.path.isfile(instance.lettre.path):
+        os.remove(instance.lettre.path)

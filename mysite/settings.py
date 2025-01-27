@@ -24,21 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = '7id7njj&d53myulpn^1uqaaiprhhvnb29%!1tt%1yzz6he$lu'
 SECRET_KEY = config('SECRET_KEY')
 # os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['errami.pythonanywhere.com']
-
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'https://www.supratourstravel.com',
-    'https://supratourstravel.com',
-    # Add other allowed origins as needed
-]
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
 
 # Application definition
 
