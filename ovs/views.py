@@ -1,15 +1,17 @@
+from django.conf import settings
 from django.http import JsonResponse
 from .models import Beneficiaire, CompteBancaire, Facture
 
 def get_beneficiaires(request):
     type_ov = request.GET.get('type_ov')
     beneficiaires = Beneficiaire.objects.all()
+    societe = Beneficiaire.objects.get(raison_sociale=settings.SOCIETE)
 
     # Logique de filtrage (à adapter selon votre besoin)
     if type_ov == 'Virement':
-        beneficiaires = beneficiaires.exclude(raison_sociale="Supratours Travel")
+        beneficiaires = beneficiaires.exclude(id=societe.id)
     elif type_ov == 'Transfert':
-        beneficiaires = beneficiaires.filter(raison_sociale="Supratours Travel") # Exemple de filtrage
+        beneficiaires = beneficiaires.filter(id=societe.id) # Exemple de filtrage
     #Sinon on ne filtre pas les bénéficiaires
 
     data = {beneficiaire.id: str(beneficiaire) for beneficiaire in beneficiaires}

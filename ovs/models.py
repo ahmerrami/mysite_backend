@@ -185,7 +185,7 @@ class OrdreVirement(models.Model):
             raise ValidationError("Le compte bancaire émetteur doit appartenir à la société fixe.")
 
         if self.compte_bancaire.beneficiaire != self.beneficiaire:
-            raise ValidationError("Le compte bancaire sélectionné doit appartenir au bénéficiaire.")
+            raise ValidationError(f"Le compte bancaire sélectionné {self.compte_bancaire} doit appartenir au bénéficiaire {self.beneficiaire}.")
 
 class Facture(models.Model):
     beneficiaire = models.ForeignKey(

@@ -2,6 +2,7 @@
     $(document).ready(function() {
         var type_ov_field = $('#id_type_ov'); // ID du champ type_ov
         var beneficiaire_field = $('#id_beneficiaire'); // ID du champ beneficiaire
+        var compteBancaireField = $('#id_compte_bancaire');
 
         function update_beneficiaires() {
             var selected_type = type_ov_field.val();
@@ -16,7 +17,9 @@
 
                     beneficiaire_field.empty(); // Vide les options actuelles
                     beneficiaire_field.append($("<option></option>").attr("value", "").text("---------")); // Ajoute une option vide
-                    
+                    compteBancaireField.empty(); // Vide les options actuelles
+                    compteBancaireField.append($("<option></option>").attr("value", "").text("---------")); // Ajoute une option vide
+
                     $.each(data, function(key, value) {
                         beneficiaire_field.append($("<option></option>").attr("value", key).text(value));
                     });
