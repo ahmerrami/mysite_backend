@@ -1,5 +1,8 @@
+# views.py
 from django.conf import settings
 from django.http import JsonResponse
+
+from .utils import get_factures_queryset
 from .models import Beneficiaire, CompteBancaire, Facture
 
 def get_beneficiaires(request):
@@ -33,13 +36,12 @@ def get_comptes_bancaires(request):
     data = {compte.id: str(compte) for compte in comptes_bancaires}
     return JsonResponse(data)
 
-
-def get_factures_non_affectees(request):
+def get_factures_all(request):
     beneficiaire_id = request.GET.get('beneficiaire_id')
-    if beneficiaire_id:
-        factures = Facture.objects.filter(
-            beneficiaire_id=beneficiaire_id,
-            ordre_virement__isnull=True
-        ).values('id', 'num_facture', 'montant_ttc', 'date_echeance')
-        return JsonResponse(list(factures), safe=False)
-    return JsonResponse([], safe=False)
+    ordre_virement_id = request.GET.get('ordre_virement_id')
+
+    factures = get_factures_queryset(beneficiaire_id, ordre_virement_id).values(
+        'id', 'num_facture', 'montant_ttc', 'mnt_net_apayer', 'date_echeance', 'ordre_virement'
+    )
+
+    return JsonResponse(list(factures), safe=False)

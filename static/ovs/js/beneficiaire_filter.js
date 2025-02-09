@@ -1,3 +1,4 @@
+// beneficiaire_filter.js
 (function($) {
     $(document).ready(function() {
         var type_ov_field = $('#id_type_ov'); // ID du champ type_ov

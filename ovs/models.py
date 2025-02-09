@@ -1,3 +1,4 @@
+# models.py
 from django.conf import settings
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
@@ -262,6 +263,6 @@ class Facture(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Facture {self.num_facture} - {self.beneficiaire.raison_sociale}"
+        return f"Facture id {self.id} - Facture {self.num_facture} - {self.beneficiaire.raison_sociale}"
 
 

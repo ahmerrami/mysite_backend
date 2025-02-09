@@ -1,3 +1,4 @@
+// compte_bancaire_filter.js
 (function($) {
     $(document).ready(function() {
         const beneficiaireField = $('#id_beneficiaire');
