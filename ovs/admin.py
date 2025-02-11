@@ -83,7 +83,7 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
 
     class Media:
         js = ('admin/js/jquery.init.js', 'ovs/js/compte_bancaire_filter.js',
-              'ovs/js/beneficiaire_filter.js', 'ovs/js/dynamic_factures.js')
+              'ovs/js/beneficiaire_filter.js', 'ovs/js/affect_factures.js')
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)

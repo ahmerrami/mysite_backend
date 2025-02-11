@@ -1,7 +1,8 @@
+//dynamic_factures.js
 document.addEventListener('DOMContentLoaded', function () {
     const beneficiaireField = document.getElementById('id_beneficiaire'); // Champ bénéficiaire
-    const facturesContainer = document.getElementById('id_factures'); // Conteneur des factures
     const ordreVirementId = document.getElementById('id_ordre_virement_id').value;
+    const facturesContainer = document.getElementById('id_factures'); // Conteneur des factures
 
     // Fonction pour charger les factures
     function loadFactures(beneficiaireId) {

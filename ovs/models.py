@@ -228,7 +228,7 @@ class Facture(models.Model):
     )
     ordre_virement = models.ForeignKey(
         OrdreVirement,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='factures_ov',
         verbose_name="Ordre de virement",
         null=True,
