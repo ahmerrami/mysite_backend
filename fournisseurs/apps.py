@@ -1,10 +1,10 @@
 from django.apps import AppConfig
 
 
-class OvsConfig(AppConfig):
+class FournisseursConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'ovs'
+    name = 'fournisseurs'
 
     def ready(self):
-        import ovs.signals
+        import fournisseurs.signals
 

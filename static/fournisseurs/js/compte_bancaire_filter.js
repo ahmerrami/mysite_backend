@@ -10,7 +10,7 @@
 
             if (beneficiaireId) { // Vérifier si un bénéficiaire est sélectionné
                 $.ajax({
-                    url: '/api/ovs/get_comptes_bancaires/',
+                    url: '/api/fournisseurs/get_comptes_bancaires/',
                     data: {
                         'beneficiaire_id': beneficiaireId
                     },

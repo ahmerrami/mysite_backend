@@ -82,8 +82,8 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
     list_filter = ('valide_pour_signature', 'valide_pour_paiement')
 
     class Media:
-        js = ('admin/js/jquery.init.js', 'ovs/js/compte_bancaire_filter.js',
-              'ovs/js/beneficiaire_filter.js', 'ovs/js/affect_factures.js')
+        js = ('admin/js/jquery.init.js', 'fournisseurs/js/compte_bancaire_filter.js',
+              'fournisseurs/js/beneficiaire_filter.js', 'fournisseurs/js/affect_factures.js')
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)

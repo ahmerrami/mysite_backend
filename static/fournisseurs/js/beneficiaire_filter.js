@@ -10,7 +10,7 @@
             var current_value = beneficiaire_field.val(); // Récupère la valeur actuelle du champ beneficiaire
 
             $.ajax({
-                url: '/api/ovs/get_beneficiaires/', // URL de la vue Django
+                url: '/api/fournisseurs/get_beneficiaires/', // URL de la vue Django
                 data: { 'type_ov': selected_type },
                 dataType: 'json',
                 success: function(data) {

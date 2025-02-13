@@ -185,8 +185,19 @@ class OrdreVirement(models.Model):
         if self.compte_bancaire_emetteur.beneficiaire != societe:
             raise ValidationError("Le compte bancaire émetteur doit appartenir à la société fixe.")
 
+        # Vérifie que le compte bancaire sélectionné appartient au bénéficiaire
         if self.compte_bancaire.beneficiaire != self.beneficiaire:
             raise ValidationError(f"Le compte bancaire sélectionné {self.compte_bancaire} doit appartenir au bénéficiaire {self.beneficiaire}.")
+
+        # Vérifie que toutes les factures associées appartiennent au bénéficiaire de l'ordre de virement
+        if self.pk:  # Vérifie si l'ordre de virement est déjà enregistré (a un ID)
+            factures_associees = self.factures_ov.all()  # Récupère toutes les factures liées à cet ordre de virement
+            for facture in factures_associees:
+                if facture.beneficiaire != self.beneficiaire:
+                    raise ValidationError(
+                        f"La facture {facture.num_facture} appartient à un autre bénéficiaire ({facture.beneficiaire.raison_sociale}) "
+                        f"que celui de l'ordre de virement ({self.beneficiaire.raison_sociale})."
+                    )
 
 class Facture(models.Model):
     beneficiaire = models.ForeignKey(

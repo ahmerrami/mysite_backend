@@ -50,7 +50,7 @@ INSTALLED_APPS = [
 	'stages',
 	'aos',
 	'omra',
-	'ovs',
+	'fournisseurs',
 	'import_export',
 ]
 

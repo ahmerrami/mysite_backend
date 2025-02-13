@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Construction de l'URL
-        let url = `/api/ovs/get-factures/?beneficiaire_id=${beneficiaireId}`;
+        let url = `/api/fournisseurs/get-factures/?beneficiaire_id=${beneficiaireId}`;
         if (ordreVirementId) {
             url += `&ordre_virement_id=${ordreVirementId}`;
         }
