@@ -1,0 +1,108 @@
+* Factures
+Si la facture est liée à un contrat les RAS et la RG sont calculées automatiquement en fonction des taux spécifiés au niveau du contrat. Sinon, les
+RAS sont initialisées à 0.
+Statut paiement :
+    - en attente : pas d'ordre de virement associé
+    - ov en cours d'établissement : ordre de virement associé mais avec "bon pour signature" non coché
+    - ov en cours de signature : ordre de virement associé avec "bon pour signature" coché et "bon pour paiement" non coché
+    - ov remis en banque : ordre de virement avec "remis en banque coché"
+    - ov payé : ordre de virement avec "compte bancaire débité"
+
+@startuml
+' Définir les classes
+
+class Beneficiaire {
+    + id: int
+    + raison_sociale: CharField
+    + registre_commerce: CharField
+    + identifiant_fiscale: CharField
+    + code_ice: CharField
+    + __str__(): str
+}
+
+class CompteBancaire {
+    + id: int
+    + beneficiaire: ForeignKey(Beneficiaire)
+    + banque: CharField
+    + rib: CharField
+    + attestation_rib_pdf: FileField
+    + __str__(): str
+}
+
+class Contrat {
+    + id: int
+    + beneficiaire: ForeignKey(Beneficiaire)
+    + numero_contrat: CharField
+    + objet: CharField
+    + date_debut: DateField
+    + date_fin: DateField
+    + montant_TTC: DecimalField
+    + taux_RAS_TVA: DecimalField
+    + taux_RAS_IS: DecimalField
+    + taux_RG: DecimalField
+    + contrat_pdf: FileField
+    + __str__(): str
+    + clean(): void
+}
+
+class OrdreVirement {
+    + id: int
+    + type_ov: CharField
+    + beneficiaire: ForeignKey(Beneficiaire)
+    + compte_bancaire: ForeignKey(CompteBancaire)
+    + compte_bancaire_emetteur: ForeignKey(CompteBancaire)
+    + montant: DecimalField
+    + date_ov: DateField
+    + valide_pour_signature: BooleanField
+    + date_remise_banque: DateField
+    + OV_remis_banque_pdf: FileField
+    + remis_a_banque: BooleanField
+    + date_operation_banque: DateField
+    + __str__(): str
+    + clean(): void
+    + save(*args, **kwargs): void
+    + valider_modifications_si_remis_a_banque(): void
+    + mettre_a_jour_remis_a_banque(): void
+    + mettre_a_jour_statut_factures(): void
+}
+
+class Facture {
+    + id: int
+    + beneficiaire: ForeignKey(Beneficiaire)
+    + contrat: ForeignKey(Contrat)
+    + num_facture: CharField
+    + date_echeance: DateField
+    + montant_ttc: DecimalField
+    + montant_ht: DecimalField
+    + montant_tva: DecimalField
+    + mnt_RAS_TVA: DecimalField
+    + mnt_RAS_IS: DecimalField
+    + mnt_RG: DecimalField
+    + mnt_net_apayer: DecimalField
+    + proforma_pdf: FileField
+    + facture_pdf: FileField
+    + PV_reception_pdf: FileField
+    + ordre_virement: ForeignKey(OrdreVirement)
+    + statut: CharField
+    + __str__(): str
+    + update_statut(): void
+    + calculate_montants(): void
+    + clean(): void
+    + save(*args, **kwargs): void
+}
+
+' Définir les relations
+
+Beneficiaire "1" *-- "many" CompteBancaire : comptes_bancaires
+Beneficiaire "1" *-- "many" Contrat : contrats
+Beneficiaire "1" *-- "many" OrdreVirement : ordres_virements
+Beneficiaire "1" *-- "many" Facture : factures_beneficiaire
+
+Contrat "1" *-- "many" Facture : factures_contrat
+
+CompteBancaire "1" *-- "many" OrdreVirement : ordres_virements_compte
+CompteBancaire "1" *-- "many" OrdreVirement : ordres_virements_emetteur
+
+OrdreVirement "1" *-- "many" Facture : factures_ov
+
+@enduml

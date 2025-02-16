@@ -3,7 +3,7 @@ from django.contrib import admin
 from django import forms
 from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
-from .utils import get_factures_queryset
+from .filters import get_factures_queryset
 from .models import Beneficiaire, CompteBancaire, Contrat, OrdreVirement, Facture
 
 
@@ -78,8 +78,8 @@ class OrdreVirementForm(forms.ModelForm):
 
 class OrdreVirementAdmin(ImportExportModelAdmin):
     form = OrdreVirementForm
-    list_display = ('beneficiaire', 'montant', 'date_ov', 'valide_pour_signature', 'valide_pour_paiement')
-    list_filter = ('valide_pour_signature', 'valide_pour_paiement')
+    list_display = ('beneficiaire', 'montant', 'date_ov', 'valide_pour_signature', 'remis_a_banque')
+    list_filter = ('valide_pour_signature', 'remis_a_banque')
 
     class Media:
         js = ('admin/js/jquery.init.js', 'fournisseurs/js/compte_bancaire_filter.js',

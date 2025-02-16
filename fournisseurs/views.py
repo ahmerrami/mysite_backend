@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import Sum
 
 import json
-from .utils import get_factures_queryset
+from .filters import get_factures_queryset
 from .models import Beneficiaire, CompteBancaire, OrdreVirement, Facture
 
 from decimal import Decimal
