@@ -1,6 +1,7 @@
 -f /usr/share/pip-wheels
 asgiref==3.7.2
 certifi==2024.2.2
+chardet==5.2.0
 charset-normalizer==3.3.2
 defusedxml==0.7.1
 diff-match-patch==20230430
@@ -16,9 +17,12 @@ MarkupPy==1.14
 mysqlclient==2.2.4
 odfpy==1.4.1
 openpyxl==3.1.2
+pillow==11.0.0
+python-decouple==3.8
 python-ipware==2.0.2
 pytz==2024.1
 PyYAML==6.0.1
+reportlab==4.3.1
 requests==2.31.0
 sqlparse==0.4.4
 tablib==3.5.0

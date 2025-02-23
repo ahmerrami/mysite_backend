@@ -10,7 +10,7 @@
 
             if (beneficiaireId) { // Vérifier si un bénéficiaire est sélectionné
                 $.ajax({
-                    url: '/api/fournisseurs/get_contrats/', // Modifier l'URL pour les contrats
+                    url: '/api/fournisseurs/get-contrats/', // Modifier l'URL pour les contrats
                     data: {
                         'beneficiaire_id': beneficiaireId
                     },

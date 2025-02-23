@@ -22,9 +22,7 @@ db.sqlite3
 
 # Static and media files
 staticfiles/
-media/uploads/
-media/tmp/
-media/cache/
+media/
 
 # Environment variables
 .env

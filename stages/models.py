@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.mail import EmailMessage
 from django.dispatch import receiver
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import pre_save, post_save, post_delete
 from .validators import validate_file_extension
 import os
 
@@ -102,3 +102,19 @@ def supprimer_fichiers_stage(sender, instance, **kwargs):
     # Supprime le fichier lettre s'il existe
     if instance.lettre and os.path.isfile(instance.lettre.path):
         os.remove(instance.lettre.path)
+
+@receiver(pre_save, sender=Stage)
+def supprimer_ancien_cv(sender, instance, **kwargs):
+    """ Supprime l'ancien CV lorsqu'un nouveau fichier est attaché. """
+    if not instance.pk:  # Si c'est une nouvelle instance, ne rien faire
+        return
+
+    try:
+        ancien_stage = Stage.objects.get(pk=instance.pk)
+    except Stage.DoesNotExist:
+        return
+
+    # Vérifie si le CV a été modifié
+    if ancien_stage.cv and ancien_stage.cv != instance.cv:
+        if os.path.isfile(ancien_stage.cv.path):
+            os.remove(ancien_stage.cv.path)
