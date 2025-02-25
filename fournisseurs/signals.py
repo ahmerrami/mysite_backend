@@ -1,4 +1,5 @@
 from decimal import Decimal
+from django.db import transaction
 from django.db.models import Sum
 from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
 from django.dispatch import receiver
@@ -60,19 +61,24 @@ def update_ordre_virement(sender, instance, **kwargs):
     """
     update_ordre_virement_montant(instance)
 
+    # Met à jour la date de paiement des factures associées si OV exécutés
+    if instance.compte_debite:
+        with transaction.atomic():
+            Facture.objects.filter(ordre_virement=instance).update(
+                date_paiement=instance.date_operation_banque
+            )
+
 @receiver(pre_delete, sender=OrdreVirement)
 def remettre_statut_factures_en_attente(sender, instance, **kwargs):
     """
     Remet le statut des factures liées à un ordre de virement à "en attente" après la suppression de l'ordre de virement.
     """
-    # Récupérer toutes les factures liées à cet ordre de virement
-    factures_associees = Facture.objects.filter(ordre_virement=instance)
-
-    # Mettre à jour le statut de chaque facture à "en attente"
-    for facture in factures_associees:
-        facture.statut = 'attente'
-        facture.ordre_virement = None  # Optionnel : supprimer la référence à l'ordre de virement
-        facture.save()
+    with transaction.atomic():  # Sécurise les mises à jour en cas d'erreur
+        Facture.objects.filter(ordre_virement=instance).update(
+            statut="attente",
+            date_paiement=None,
+            ordre_virement=None  # Optionnel
+        )
 
 @receiver(post_delete, sender=OrdreVirement) ###
 def supprimer_fichiers_OV(sender, instance, **kwargs):

@@ -5,34 +5,18 @@ from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
 
 from django.urls import path
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.html import format_html
 from django.urls import reverse
 
-from .filters import get_factures_queryset
-from .models import Beneficiaire, CompteTresorerie, Contrat, OrdreVirement, Facture
-from .views import generate_ov_pdf
+from ..filters import get_factures_queryset
+from ..models.beneficiaire_model import Beneficiaire
+from ..models.compte_tresorerie_model import CompteTresorerie
+from ..models.ordre_virement_model import OrdreVirement
+from ..models.facture_model import Facture
+from ..views import generate_ov_pdf
 
-@admin.register(Beneficiaire)
-class BeneficiaireAdmin(ImportExportModelAdmin):
-    list_display = ('raison_sociale', 'registre_commerce', 'identifiant_fiscale', 'code_ice')
-    search_fields = ('raison_sociale', 'identifiant_fiscale')
-
-
-@admin.register(CompteTresorerie)
-class CompteTresorerieAdmin(ImportExportModelAdmin):
-    list_display = ('beneficiaire', 'banque', 'rib')
-    search_fields = ('beneficiaire__raison_sociale', 'banque', 'rib')
-    list_filter = ('beneficiaire', 'banque')
-
-
-#@admin.register(Contrat)
-class ContratAdmin(ImportExportModelAdmin):
-    list_display = ('numero_contrat', 'objet', 'beneficiaire')
-    search_fields = ('numero_contrat',)
-
-admin.site.register(Contrat, ContratAdmin)
+import csv
 
 class OrdreVirementForm(forms.ModelForm):
     ordre_virement_id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
@@ -80,6 +64,25 @@ class OrdreVirementForm(forms.ModelForm):
             # Aucun compte bancaire n'est disponible si le nom de la société n'est pas défini
             self.fields['compte_tresorerie_emetteur'].queryset = CompteTresorerie.objects.none()
 
+# ##############################################################################
+
+def export_ov_as_csv(modeladmin, request, queryset):
+    """
+    Exporte les Ordres de Virement sélectionnés en CSV.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="ordres_virement.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['beneficiaire', 'montant', 'date_paiement'])
+
+    for ov in queryset:
+        writer.writerow([ov.beneficiaire.raison_sociale, ov.montant, ov.date_paiement])
+
+    return response
+
+export_ov_as_csv.short_description = "Exporter les OV en CSV"
+
 # Enregistrement du modèle OrdreVirement dans l'administration Django
 # @admin.register(OrdreVirement)
 
@@ -88,7 +91,7 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
     list_display = ('beneficiaire', 'montant', 'date_ov', 'valide_pour_signature', 'remis_a_banque', 'generate_pdf_link')
     list_filter = ('valide_pour_signature', 'remis_a_banque')
     readonly_fields = ['montant']
-    actions = ['generate_ov_pdf_action']
+    actions = ['generate_ov_pdf_action','export_ov_as_csv']
 
     class Media:
         js = ('admin/js/jquery.init.js', 'fournisseurs/js/compte_tresorerie_filter.js',
@@ -100,6 +103,15 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
         if 'factures' in form.cleaned_data:
             factures = form.cleaned_data['factures']
             factures.update(ordre_virement=obj)
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj) or []
+
+        if obj:  # Si l'OV existe déjà
+            if obj.compte_debite and not request.user.is_superuser:
+                fields.append("compte_debite")  # Rendre le champ en lecture seule
+
+        return fields
 
     def generate_pdf_link(self, obj):
         url = reverse('admin:generate_pdf', args=[obj.id])  # Prefixe 'admin:'
@@ -127,13 +139,3 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
         return generate_ov_pdf(request, ordre_virement_id)
 
 admin.site.register(OrdreVirement, OrdreVirementAdmin)
-
-@admin.register(Facture)
-class FactureAdmin(ImportExportModelAdmin):
-    list_display = ('num_facture', 'beneficiaire', 'montant_ttc', 'mnt_net_apayer', 'date_echeance', 'ordre_virement','statut')
-    search_fields = ('num_facture', 'beneficiaire__raison_sociale')
-    list_filter = ('statut','date_echeance', 'beneficiaire')
-    readonly_fields = ('ordre_virement','statut',)
-
-    class Media:
-        js = ('admin/js/jquery.init.js', 'fournisseurs/js/contrat_filter.js')
