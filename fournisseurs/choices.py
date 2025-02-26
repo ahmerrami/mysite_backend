@@ -9,6 +9,7 @@ TYPE_CONTRAT = [
     ('marche', 'Marché'),
     ('commande', 'Bon de commande'),
     ('contrat', 'Contrat'),
+    ('convention', 'Convention'),
 ]
 
 TYPE_MODE_PAIEMENT = [

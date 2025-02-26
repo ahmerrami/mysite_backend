@@ -115,7 +115,7 @@ class Facture(models.Model):
         if self.contrat:
             self.mnt_RAS_TVA = self.montant_tva * (self.contrat.taux_RAS_TVA / 100)
             self.mnt_RAS_IS = self.montant_ht * (self.contrat.taux_RAS_IS / 100)
-            self.mnt_RG = self.montant_ht * (self.contrat.taux_RG / 100)
+            self.mnt_RG = self.montant_ttc * (self.contrat.taux_RG / 100)
             self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
         else:
             self.mnt_RAS_TVA = 0
