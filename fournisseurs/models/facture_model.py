@@ -1,8 +1,10 @@
 # models/facture_model.py
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 
+from .audit_model import AuditModel
 from .beneficiaire_model import Beneficiaire
 from .contrat_model import Contrat
 from .ordre_virement_model import OrdreVirement
@@ -10,7 +12,7 @@ from .ordre_virement_model import OrdreVirement
 from ..validators import verifier_modifications_autorisees
 from ..choices import *  # Importer toutes les constantes
 
-class Facture(models.Model):
+class Facture(AuditModel):
     """
     Modèle représentant une facture associée à un bénéficiaire et un contrat.
     """
@@ -28,7 +30,7 @@ class Facture(models.Model):
         null=True,
         blank=True
     )
-    num_facture = models.CharField(max_length=50, unique=True, verbose_name="Numéro de facture")
+    num_facture = models.CharField(max_length=50, verbose_name="Numéro de facture")
     date_facture = models.DateField(verbose_name="Date facture")
     date_echeance = models.DateField(verbose_name="Date d'échéance")
     montant_ttc = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TTC")
@@ -92,6 +94,14 @@ class Facture(models.Model):
         default='attente',
         verbose_name="Statut de la facture"
     )
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['beneficiaire', 'num_facture'],
+                name='unique_beneficiaire_facture'
+            )
+        ]
 
     def update_statut(self):
         """

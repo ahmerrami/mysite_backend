@@ -4,12 +4,13 @@ from django.core.validators import RegexValidator, FileExtensionValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from .audit_model import AuditModel
 from .beneficiaire_model import Beneficiaire
 from .ordre_virement_model import OrdreVirement
 
 from ..choices import *  # Importer toutes les constantes
 
-class CompteTresorerie(models.Model):
+class CompteTresorerie(AuditModel):
     """
     Modèle représentant un compte bancaire ou une caisse associé à un bénéficiaire.
     """
@@ -81,6 +82,9 @@ class CompteTresorerie(models.Model):
         blank=True,
         null=True
     )
+
+    class Meta:
+        ordering = ['beneficiaire']
 
     def __str__(self):
         if self.type_compte == 'bancaire':

@@ -4,13 +4,14 @@ from django.db import models, transaction
 from django.core.validators import MinValueValidator, FileExtensionValidator
 from django.core.exceptions import ValidationError
 
+from .audit_model import AuditModel
 from .beneficiaire_model import Beneficiaire
 #from .compte_tresorerie_model import CompteTresorerie
 
 from ..validators import verifier_modifications_autorisees
 from ..choices import *  # Importer toutes les constantes
 
-class OrdreVirement(models.Model):
+class OrdreVirement(AuditModel):
     """
     Modèle représentant un ordre de virement.
     """

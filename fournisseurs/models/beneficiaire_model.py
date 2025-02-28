@@ -2,8 +2,9 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
+from .audit_model import AuditModel
 
-class Beneficiaire(models.Model):
+class Beneficiaire(AuditModel):
     """
     Modèle représentant un bénéficiaire.
     """

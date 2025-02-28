@@ -4,10 +4,11 @@ from django.core.validators import MinValueValidator, MaxValueValidator, FileExt
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from .audit_model import AuditModel
 from .beneficiaire_model import Beneficiaire
 from ..choices import *  # Importer toutes les constantes
 
-class Contrat(models.Model):
+class Contrat(AuditModel):
     """
     Modèle représentant un contrat associé à un bénéficiaire.
     """

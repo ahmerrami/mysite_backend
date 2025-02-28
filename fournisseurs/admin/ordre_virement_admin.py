@@ -90,7 +90,7 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
     form = OrdreVirementForm
     list_display = ('beneficiaire', 'montant', 'date_ov', 'valide_pour_signature', 'remis_a_banque', 'generate_pdf_link')
     list_filter = ('valide_pour_signature', 'remis_a_banque')
-    readonly_fields = ['montant']
+    readonly_fields = ('created_by','updated_by','montant')
     actions = ['generate_ov_pdf_action','export_ov_as_csv']
 
     class Media:
