@@ -13,6 +13,7 @@ TYPE_CONTRAT = [
 ]
 
 TYPE_MODE_PAIEMENT = [
+    ('15J', '15 jours'),
     ('30J', '30 jours'),
     ('30JFDM', '30 jours fin de mois'),
     ('60J', '60 jours'),

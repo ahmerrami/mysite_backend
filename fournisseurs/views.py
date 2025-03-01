@@ -13,6 +13,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
+from reportlab.lib import colors
 
 from .filters import get_factures_queryset
 from .models import Beneficiaire, CompteTresorerie, Contrat, OrdreVirement, Facture
@@ -119,40 +120,105 @@ def generate_ov_pdf(request, ordre_virement_id):
 
     # 📄 **Première page : Détails de l'ordre de virement**
     y_position = height - 100  # Départ du texte
-    line_spacing = 40  # Espacement des lignes
+    line_spacing = 35  # Espacement des lignes
     y_position -= line_spacing
 
     # Définir la police en gras
     p.setFont("Helvetica-Bold", 14)
+    p.setFillColor("blue")
     p.drawString(200, y_position, f"Ordre de virement n° : {ordre_virement.reference}")
-    # Revenir à la police normale après
+    p.setFillColor("black")
     p.setFont("Helvetica", 12)
     y_position -= line_spacing
+    y_position -= line_spacing/2
+    p.drawString(100, y_position, "Guichet : ")
+    p.setFillColor("blue")
+    p.drawString(180, y_position, ordre_virement.compte_tresorerie_emetteur.banque)
+    p.setFillColor("black")
     y_position -= line_spacing
-    p.drawString(100, y_position, f"Guichet : {ordre_virement.compte_tresorerie_emetteur.banque}")
+    p.drawString(100, y_position, "Nom du donneur d’ordre : ")
+    p.setFillColor("blue")
+    p.drawString(270, y_position, ordre_virement.compte_tresorerie_emetteur.beneficiaire.raison_sociale)
+    p.setFillColor("black")
     y_position -= line_spacing
-    p.drawString(100, y_position, f"Nom du donneur d’ordre : {ordre_virement.compte_tresorerie_emetteur.beneficiaire.raison_sociale}")
+    p.drawString(100, y_position, "Veuillez virer par le débit de mon compte n° : ")
+    p.setFillColor("blue")
+    p.drawString(370, y_position, ordre_virement.compte_tresorerie_emetteur.rib)
+    p.setFillColor("black")
     y_position -= line_spacing
-    p.drawString(100, y_position, f"Veuillez virer par le débit de mon compte n° : {ordre_virement.compte_tresorerie_emetteur.rib}")
+    p.drawString(100, y_position, "La somme de : ")
+    p.setFillColor("blue")
+    p.drawString(200, y_position, f"{ordre_virement.montant} DH")
+    p.setFillColor("black")
     y_position -= line_spacing
-    p.drawString(100, y_position, f"La somme de : {ordre_virement.montant} DH")
-    y_position -= line_spacing
-    p.drawString(100, y_position, f"En faveur de : {ordre_virement.beneficiaire.raison_sociale}")
+    p.drawString(100, y_position, "En faveur de : ")
+    p.setFillColor("blue")
+    p.drawString(200, y_position, ordre_virement.beneficiaire.raison_sociale)
+    p.setFillColor("black")
     y_position -= line_spacing
 
     if ordre_virement.compte_tresorerie.type_compte == "bancaire":
-        p.drawString(100, y_position, f"Domicilié chez : {ordre_virement.compte_tresorerie.banque}")
+        p.drawString(100, y_position, "Domicilié chez : ")
+        p.setFillColor("blue")
+        p.drawString(230, y_position, ordre_virement.compte_tresorerie.banque)
+        p.setFillColor("black")
         y_position -= line_spacing
-        p.drawString(100, y_position, f"Compte n° : {ordre_virement.compte_tresorerie.rib}")
+        p.drawString(100, y_position, "Compte n° : ")
+        p.setFillColor("blue")
+        p.drawString(200, y_position, ordre_virement.compte_tresorerie.rib)
+        p.setFillColor("black")
     elif ordre_virement.compte_tresorerie.type_compte == "caisse":
-        p.drawString(100, y_position, f"Nom caisse : {ordre_virement.compte_tresorerie.nom_caisse}")
+        p.drawString(100, y_position, "Nom caisse : ")
+        p.setFillColor("blue")
+        p.drawString(200, y_position, ordre_virement.compte_tresorerie.nom_caisse)
+        p.setFillColor("black")
         y_position -= line_spacing
-        p.drawString(100, y_position, f"Détenteur caisse : {ordre_virement.compte_tresorerie.detenteur_caisse}")
+        p.drawString(100, y_position, "Détenteur caisse : ")
+        p.setFillColor("blue")
+        p.drawString(230, y_position, ordre_virement.compte_tresorerie.detenteur_caisse)
+        p.setFillColor("black")
 
     y_position -= line_spacing
-    p.drawString(100, y_position, "Instruction particulières : Voir liste des factures sur page suivante")
+    # Générer la liste formatée des factures
+    factures = ordre_virement.factures_ov.all()
+    factures_text = ", ".join(
+        f"({facture.num_facture}, {facture.montant_ttc:.2f} DH, {facture.mnt_net_apayer:.2f} DH)"
+        for facture in factures
+    )
+
+    # Vérifier si la liste est vide
+    p.drawString(100, y_position, "Instruction particulières : ")
+    instruction_color = "black" if not factures_text else "blue"
     y_position -= line_spacing
-    p.drawString(100, y_position, "Mode de virement : Normal")
+
+    # Définir la couleur pour le texte des factures
+    p.setFillColor(instruction_color)
+
+    # Découper factures_text en plusieurs lignes si nécessaire
+    max_chars_per_line = 80  # Ajuster en fonction de la largeur disponible
+    lines = []
+    while len(factures_text) > max_chars_per_line:
+        split_index = factures_text[:max_chars_per_line].rfind(",")  # Trouver la dernière virgule avant la limite
+        if split_index == -1:  # Si aucune virgule trouvée, couper directement
+            split_index = max_chars_per_line
+        lines.append(factures_text[:split_index])
+        factures_text = factures_text[split_index + 1:]
+
+    lines.append(factures_text)  # Ajouter la dernière partie restante
+
+    # Afficher chaque ligne séparément avec un léger décalage
+    for line in lines:
+        p.drawString(120, y_position, line.strip())
+        y_position -= line_spacing/2
+    y_position -= line_spacing/2
+
+    # Remettre la couleur en noir pour les textes suivants
+    p.setFillColor("black")
+
+    p.drawString(100, y_position, "Mode de virement : ")
+    p.setFillColor("blue")
+    p.drawString(250, y_position, "Normal")
+    p.setFillColor("black")
 
     # Espace pour signatures
     y_position -= 2 * line_spacing
@@ -169,7 +235,6 @@ def generate_ov_pdf(request, ordre_virement_id):
     p.setFont("Helvetica", 12)
     y_position = 770
 
-    factures = ordre_virement.factures_ov.all()
     total_ttc = 0
     total_net = 0
 

@@ -30,7 +30,7 @@ class CompteTresorerieAdmin(ImportExportModelAdmin):
     readonly_fields = ('created_by','updated_by')
 
     class Media:
-        js = ('js/compte_tresorerie.js',)  # Fichier JS pour la logique dynamique
+        js = ('fournisseurs/js/compte_tresorerie_toggle.js',)  # Fichier JS pour la logique dynamique
 
 admin.site.register(CompteTresorerie, CompteTresorerieAdmin)
 
