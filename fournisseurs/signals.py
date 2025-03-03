@@ -5,6 +5,7 @@ from django.db.models.signals import post_save, pre_save, pre_delete, post_delet
 from django.dispatch import receiver
 import os
 from .models import Facture, OrdreVirement
+from .choices import *  # Importer toutes les constantes
 
 
 def update_ordre_virement_montant(ordre_virement):
@@ -60,6 +61,11 @@ def update_ordre_virement(sender, instance, **kwargs):
     Met à jour le montant de l'ordre de virement après sa création ou modification.
     """
     update_ordre_virement_montant(instance)
+
+    # Si la référence de l'OV est vide, y mettre l'ID
+    if not instance.reference:
+        instance.reference = str(instance.id+ov_start_num)
+        instance.save(update_fields=["reference"])
 
     # Met à jour la date de paiement des factures associées si OV exécutés
     if instance.compte_debite:

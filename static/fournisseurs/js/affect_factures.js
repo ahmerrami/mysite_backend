@@ -68,10 +68,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateFactureAssociation(factureId, isChecked) {
         const url = '/api/fournisseurs/update-facture-association/';
         const data = {
-            facture_id: factureId,
-            ordre_virement_id: ordreVirementId,
-            is_associated: isChecked
+            facture_id: Number(factureId),  // ✅ Conversion en entier
+            ordre_virement_id: Number(ordreVirementId),  // ✅ Conversion en entier
+            is_associated: Boolean(isChecked)
         };
+
+        console.log("Données envoyées :", data); // Debugging
 
         // Envoyer une requête POST pour mettre à jour l'association
         fetch(url, {

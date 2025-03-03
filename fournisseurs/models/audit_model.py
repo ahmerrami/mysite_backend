@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-from ..middleware import CurrentUserMiddleware
+from fournisseurs.middleware import CurrentUserMiddleware
 
 class AuditModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)

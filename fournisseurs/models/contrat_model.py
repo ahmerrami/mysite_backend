@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .audit_model import AuditModel
 from .beneficiaire_model import Beneficiaire
-from ..choices import *  # Importer toutes les constantes
+from fournisseurs.choices import *  # Importer toutes les constantes
 
 class Contrat(AuditModel):
     """

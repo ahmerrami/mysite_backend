@@ -8,7 +8,7 @@ from .audit_model import AuditModel
 from .beneficiaire_model import Beneficiaire
 from .ordre_virement_model import OrdreVirement
 
-from ..choices import *  # Importer toutes les constantes
+from fournisseurs.choices import *  # Importer toutes les constantes
 
 class CompteTresorerie(AuditModel):
     """

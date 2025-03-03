@@ -9,8 +9,8 @@ from .beneficiaire_model import Beneficiaire
 from .contrat_model import Contrat
 from .ordre_virement_model import OrdreVirement
 
-from ..validators import verifier_modifications_autorisees
-from ..choices import *  # Importer toutes les constantes
+from fournisseurs.validators import verifier_modifications_autorisees
+from fournisseurs.choices import *  # Importer toutes les constantes
 
 class Facture(AuditModel):
     """

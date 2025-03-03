@@ -17,6 +17,7 @@ from reportlab.lib import colors
 
 from .filters import get_factures_queryset
 from .models import Beneficiaire, CompteTresorerie, Contrat, OrdreVirement, Facture
+from utils.conversions import nombre_en_toutes_lettres
 
 def get_beneficiaires(request):
     type_ov = request.GET.get('type_ov')
@@ -78,12 +79,12 @@ def update_montant_ordre_virement(request, ordre_virement_id):
 @require_POST
 def update_facture_association(request):
     try:
-        data = json.loads(request.body)
+        data = json.loads(request.body.decode('utf-8'))
         facture_id = data.get('facture_id')
         ordre_virement_id = data.get('ordre_virement_id')
         is_associated = data.get('is_associated')
 
-        if not isinstance(facture_id, int) or not isinstance(ordre_virement_id, int) or is_associated is None:
+        if not isinstance(facture_id, int) or not isinstance(ordre_virement_id, int) or not isinstance(is_associated, bool):
             return JsonResponse({'success': False, 'error': 'Paramètres invalides'}, status=400)
 
         facture = get_object_or_404(Facture, id=facture_id)
@@ -96,8 +97,12 @@ def update_facture_association(request):
 
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Données JSON invalides'}, status=400)
+    except Facture.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Facture non trouvée'}, status=404)
+    except OrdreVirement.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Ordre de virement non trouvé'}, status=404)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        return JsonResponse({'success': False, 'error': f'Erreur serveur : {str(e)}'}, status=500)
 
 def generate_ov_pdf(request, ordre_virement_id):
     ordre_virement = get_object_or_404(OrdreVirement, id=ordre_virement_id)
@@ -149,6 +154,8 @@ def generate_ov_pdf(request, ordre_virement_id):
     p.drawString(100, y_position, "La somme de : ")
     p.setFillColor("blue")
     p.drawString(200, y_position, f"{ordre_virement.montant} DH")
+    y_position -= line_spacing/2
+    p.drawString(120, y_position, f"{nombre_en_toutes_lettres(ordre_virement.montant)}")
     p.setFillColor("black")
     y_position -= line_spacing
     p.drawString(100, y_position, "En faveur de : ")
