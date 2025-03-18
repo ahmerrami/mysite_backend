@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+    <h2>Importer des Comptes depuis un fichier Excel</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="button">Importer</button>
+    </form>
+    <br>
+    <a href="{% url 'admin:app_compte_changelist' %}" class="button">Retour</a>
+{% endblock %}

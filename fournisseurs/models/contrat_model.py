@@ -43,7 +43,7 @@ class Contrat(AuditModel):
     )
     objet = models.CharField(max_length=500, verbose_name="Objet")
     date_debut = models.DateField(verbose_name="Date de début")
-    date_fin = models.DateField(verbose_name="Date de fin")
+    date_fin = models.DateField(verbose_name="Date de fin", null=True, blank=True)
     mode_paiement = models.CharField(
         max_length=10,
         choices=TYPE_MODE_PAIEMENT,
@@ -99,3 +99,6 @@ class Contrat(AuditModel):
     def clean(self):
         if self.date_debut and self.date_fin and self.date_debut > self.date_fin:
             raise ValidationError("La date de début doit être antérieure ou égale à la date de fin.")
+
+        if self.type_contrat != "commande" and not self.date_fin:
+            raise ValidationError("La date de fin est obligatoire sauf pour les contrats de type 'bon de commande'.")

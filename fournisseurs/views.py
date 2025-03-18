@@ -50,6 +50,10 @@ def get_factures_all(request):
 
     return JsonResponse(list(factures), safe=False)
 
+def get_contrats_all_(request): # juste pour test
+    print("Appel de get_contrats_all")
+    return JsonResponse({"message": "Endpoint found"}, status=200)
+
 def get_contrats_all(request):
     beneficiaire_id = request.GET.get('beneficiaire_id')
 

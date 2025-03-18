@@ -33,9 +33,9 @@ class Facture(AuditModel):
     num_facture = models.CharField(max_length=50, verbose_name="Numéro de facture")
     date_facture = models.DateField(verbose_name="Date facture")
     date_echeance = models.DateField(verbose_name="Date d'échéance")
-    montant_ttc = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TTC")
     montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT")
-    montant_tva = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TVA")
+    mnt_tva = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TVA", default=0.00)
+    montant_ttc = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TTC", default=0.00)
     mnt_RAS_TVA = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS TVA", default=0.00)
     mnt_RAS_IS = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS IS", default=0.00)
     mnt_RG = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RG", default=0.00)
@@ -123,24 +123,30 @@ class Facture(AuditModel):
         Calcule les montants liés aux retenues et au net à payer.
         """
         if self.contrat:
-            self.mnt_RAS_TVA = self.montant_tva * (self.contrat.taux_RAS_TVA / 100)
+            self.mnt_tva = self.montant_ht * (self.contrat.taux_de_TVA / 100)
+            self.montant_ttc = self.montant_ht + self.mnt_tva
+            self.mnt_RAS_TVA = self.mnt_tva * (self.contrat.taux_RAS_TVA / 100)
             self.mnt_RAS_IS = self.montant_ht * (self.contrat.taux_RAS_IS / 100)
             self.mnt_RG = self.montant_ttc * (self.contrat.taux_RG / 100)
             self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
         else:
+            self.mnt_tva = 0
             self.mnt_RAS_TVA = 0
             self.mnt_RAS_IS = 0
             self.mnt_RG = 0
-            self.mnt_net_apayer = self.montant_ttc
+            self.mnt_net_apayer = self.montant_ht  # Si pas de contrat, net à payer est égal à HT
 
     def clean(self):
         """
         Validation des données avant sauvegarde.
         """
-        if self.montant_ht is None or self.montant_tva is None or self.montant_ttc is None:
-            raise ValidationError("Les montants HT, TVA et TTC doivent être renseignés.")
+        if self.montant_ht is None:
+            raise ValidationError("Le montant HT doit être renseigné.")
 
-        if self.montant_ttc != (self.montant_ht + self.montant_tva):
+        # Vérification des montants calculés
+        self.calculate_montants()  # Assurez-vous que les montants sont calculés avant la validation
+
+        if not self.contrat and self.montant_ttc != (self.montant_ht + self.mnt_tva):
             raise ValidationError("Le montant TTC doit être égal à la somme de HT et TVA.")
 
         if self.contrat and self.beneficiaire != self.contrat.beneficiaire:
@@ -152,7 +158,7 @@ class Facture(AuditModel):
         if self.contrat and (not self.PV_reception_pdf or not self.date_execution):
             raise ValidationError("Le PV de réception doit être téléchargé et la date exécution renseignée.")
 
-        #Vérifie que le contrat sélectionné appartient bien au bénéficiaire.
+        # Vérifie que le contrat sélectionné appartient bien au bénéficiaire.
         if self.contrat and self.beneficiaire and self.contrat.beneficiaire != self.beneficiaire:
             raise ValidationError("Le contrat sélectionné ne correspond pas au bénéficiaire de la facture.")
 
@@ -162,7 +168,6 @@ class Facture(AuditModel):
         """
         Redéfinition de la méthode save pour calculer automatiquement les montants avant la sauvegarde.
         """
-
         self.calculate_montants()
         self.update_statut()
         super().save(*args, **kwargs)
@@ -172,7 +177,7 @@ class Facture(AuditModel):
             ancienne_instance = Facture.objects.get(pk=self.pk)
             if ancienne_instance.ordre_virement:
                 if not self.facture_pdf:
-                    champs_modifiables = ['facture_pdf','statut']
+                    champs_modifiables = ['facture_pdf', 'statut']
                 else:
                     champs_modifiables = ['statut']
                 verifier_modifications_autorisees(self, ancienne_instance, champs_modifiables)

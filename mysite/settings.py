@@ -28,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY')
 # os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 	'omra',
 	'fournisseurs',
 	'import_export',
+	'operationsDiverses',
 ]
 
 AUTH_USER_MODEL = 'accounts.MyUser'
@@ -82,6 +83,7 @@ TEMPLATES = [
         'DIRS': [
             os.path.join(BASE_DIR, 'mysite/templates'),
             os.path.join(BASE_DIR, 'accounts/templates'),
+            os.path.join(BASE_DIR, "templates"),
         ],
         'APP_DIRS': True,
         'OPTIONS': {

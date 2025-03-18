@@ -1,4 +1,4 @@
-# urls.py
+# fournisseurs/urls.py
 from django.urls import path
 from . import views
 

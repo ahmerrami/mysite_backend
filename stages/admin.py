@@ -16,6 +16,7 @@ class PeriodeWidget(Widget):
 # Define a custom resource for Stage
 class StageResource(resources.ModelResource):
     ville = fields.Field(attribute='ville__ville', column_name='Ville')
+    villeEcole = fields.Field(attribute='villeEcole__ville', column_name='VilleEcole')
 
     class Meta:
         model = Stage
@@ -57,8 +58,8 @@ send_mass_email.short_description = "Envoyer un email aux stagiaires sélectionn
 
 class StageAdmin(ImportExportModelAdmin):
     resource_class = StageResource
-    list_display = ('nom', 'tel', 'niveau', 'specialite', 'ville', 'selectedPeriode', 'created_at', 'cv', 'lettre', 'traite', 'commentaire')
-    list_editable = ('ville', 'selectedPeriode')
+    list_display = ('nom', 'tel', 'niveau', 'specialite', 'ville', 'villeEcole', 'selectedPeriode', 'created_at', 'cv', 'lettre', 'traite', 'commentaire')
+    list_editable = ('ville', 'villeEcole', 'selectedPeriode')
     list_filter = ('traite', 'ville', 'selectedPeriode', 'created_at')
     list_per_page = 50
     actions = [send_mass_email]  # Ajoutez l'action ici
