@@ -13,19 +13,19 @@ class EcritureOperationInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         """Empêcher l'ajout de nouvelles écritures si l'opération est valide."""
-        if obj and obj.valide:
+        if obj and obj.valide and not request.user.is_superuser:
             return False
         return super().has_add_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
         """Empêcher la suppression d'écritures si l'opération est valide."""
-        if obj and obj.valide:
+        if obj and obj.valide and not request.user.is_superuser:
             return False
         return super().has_delete_permission(request, obj)
 
     def has_change_permission(self, request, obj=None):
         """Empêcher la modification des écritures si l'opération est valide."""
-        if obj and obj.valide:
+        if obj and obj.valide and not request.user.is_superuser:
             return False
         return super().has_change_permission(request, obj)
 
@@ -36,13 +36,13 @@ class OperationDiverseAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         """Empêcher la suppression d'une opération si elle est valide."""
-        if obj and obj.valide:
+        if obj and obj.valide and not request.user.is_superuser:
             return False
         return super().has_delete_permission(request, obj)
 
     def has_change_permission(self, request, obj=None):
         """Empêcher la modification d'une opération si elle est valide."""
-        if obj and obj.valide:
+        if obj and obj.valide and not request.user.is_superuser:
             return False
         return super().has_change_permission(request, obj)
 

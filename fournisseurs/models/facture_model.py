@@ -125,16 +125,18 @@ class Facture(AuditModel):
         if self.contrat:
             self.mnt_tva = self.montant_ht * (self.contrat.taux_de_TVA / 100)
             self.montant_ttc = self.montant_ht + self.mnt_tva
-            self.mnt_RAS_TVA = self.mnt_tva * (self.contrat.taux_RAS_TVA / 100)
+            if self.montant_ttc > 5000:
+                self.mnt_RAS_TVA = self.mnt_tva * (self.contrat.taux_RAS_TVA / 100)
+            else:
+                self.mnt_RAS_TVA = 0
             self.mnt_RAS_IS = self.montant_ht * (self.contrat.taux_RAS_IS / 100)
             self.mnt_RG = self.montant_ttc * (self.contrat.taux_RG / 100)
             self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
         else:
-            self.mnt_tva = 0
             self.mnt_RAS_TVA = 0
             self.mnt_RAS_IS = 0
             self.mnt_RG = 0
-            self.mnt_net_apayer = self.montant_ht  # Si pas de contrat, net à payer est égal à HT
+            self.mnt_net_apayer = self.montant_ht+self.mnt_tva  # Si pas de contrat, net à payer est égal à HT
 
     def clean(self):
         """

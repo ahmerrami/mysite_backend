@@ -27,6 +27,12 @@ class OrdreVirement(AuditModel):
         choices=TYPE_OV_CHOICES,
         verbose_name="Type d'ordre de virement"
     )
+    mode_execution = models.CharField(
+        max_length=20,
+        choices=MODE_EXECUTION_OV_CHOICES,
+        default='INDIVIDUEL',
+        verbose_name="Mode d'exécution"
+    )
     beneficiaire = models.ForeignKey(
         Beneficiaire,
         on_delete=models.PROTECT,

@@ -9,5 +9,9 @@ class ContratAdmin(ImportExportModelAdmin):
     list_filter = ('moe','type_contrat')
     search_fields = ('numero_contrat',)
     readonly_fields = ('created_by','updated_by')
+    list_per_page = 15
+
+    def has_import_permission(self, request):
+        return request.user.is_superuser
 
 admin.site.register(Contrat, ContratAdmin)

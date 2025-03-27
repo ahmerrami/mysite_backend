@@ -13,7 +13,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
-from reportlab.lib import colors
+#from reportlab.lib import colors
+#from reportlab.lib.colors import red  # Importer la couleur rouge
 
 from .filters import get_factures_queryset
 from .models import Beneficiaire, CompteTresorerie, Contrat, OrdreVirement, Facture
@@ -237,6 +238,22 @@ def generate_ov_pdf(request, ordre_virement_id):
     p.drawString(100, y_position - 20, "Signature Trésorier")
     p.line(350, y_position, 500, y_position)  # Signature 2
     p.drawString(350, y_position - 20, "Signature Donneur d'Ordre")
+
+    # Ajouter "A ne pas adresser à la banque" si le mode est en masse
+    if ordre_virement.mode_execution == 'MASSE':  # Ou `if not ordre_virement.est_individuel` selon votre modèle
+        y_position -= 80  # Espace supplémentaire après les signatures
+        p.setFont("Helvetica-Bold", 16)  # Police en gras
+        p.setFillColorRGB(1, 0, 0)  # Couleur rouge (RGB)
+        p.drawString(200, y_position, "--------------------------------------------------")
+        p.setFillColor("black")
+        y_position -= 20
+        p.drawString(200, y_position, "OV exécuté par voie électronique")
+        y_position -= 20
+        p.drawString(210, y_position, "A ne pas remettre à la banque.")
+        y_position -= 20
+        p.setFillColorRGB(1, 0, 0)  # Couleur rouge (RGB)
+        p.drawString(200, y_position, "--------------------------------------------------")
+        p.setFillColor("black")  # Remettre la couleur par défaut
 
     p.showPage()
 

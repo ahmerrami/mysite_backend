@@ -28,9 +28,13 @@ class CompteTresorerieAdmin(ImportExportModelAdmin):
     list_filter = ('type_compte',)
     search_fields = ('beneficiaire__raison_sociale', 'banque', 'rib')
     readonly_fields = ('created_by','updated_by')
+    list_per_page = 15
 
     class Media:
         js = ('fournisseurs/js/compte_tresorerie_toggle.js',)  # Fichier JS pour la logique dynamique
+
+    def has_import_permission(self, request):
+        return request.user.is_superuser
 
 admin.site.register(CompteTresorerie, CompteTresorerieAdmin)
 

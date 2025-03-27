@@ -17,7 +17,7 @@ class Compte(models.Model):
         return f"{self.numero} - {self.intitule}"
 
 class OperationDiverse(models.Model):
-    libelle = models.CharField(max_length=255)
+    libelle = models.TextField(max_length=255)
     date_operation = models.DateField(auto_now_add=True)
     annee_comptable = models.IntegerField(
         default=datetime.date.today().year

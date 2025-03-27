@@ -39,6 +39,11 @@ TYPE_OV_CHOICES = [
     ('Transfert', 'Transfert'),
 ]
 
+MODE_EXECUTION_OV_CHOICES = [
+    ('INDIVIDUEL', 'Individuel'),
+    ('MASSE', 'En masse'),
+]
+
 STATUT_FAC_CHOICES = [
     ('attente', 'En attente'),
     ('etablissement', 'OV en cours d\'établissement'),
