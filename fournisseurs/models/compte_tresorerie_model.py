@@ -18,7 +18,8 @@ class CompteTresorerie(AuditModel):
         Beneficiaire,
         on_delete=models.CASCADE,
         related_name='comptes',
-        verbose_name="Bénéficiaire"
+        verbose_name="Bénéficiaire",
+        limit_choices_to={'actif': True}
     )
     type_compte = models.CharField(
         max_length=10,
@@ -82,6 +83,8 @@ class CompteTresorerie(AuditModel):
         blank=True,
         null=True
     )
+
+    actif = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['beneficiaire']

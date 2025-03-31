@@ -76,6 +76,8 @@ class Beneficiaire(AuditModel):
         }
     )
 
+    actif = models.BooleanField(default=True)
+
     class Meta:
         verbose_name = "Bénéficiaire"
         verbose_name_plural = "Bénéficiaires"

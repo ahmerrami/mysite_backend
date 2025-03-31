@@ -17,7 +17,8 @@ class Contrat(AuditModel):
         Beneficiaire,
         on_delete=models.PROTECT,
         related_name='contrats',
-        verbose_name="Bénéficiaire"
+        verbose_name="Bénéficiaire",
+        limit_choices_to={'actif': True}
     )
     moe = models.CharField(
         max_length=20,
@@ -91,7 +92,7 @@ class Contrat(AuditModel):
             FileExtensionValidator(allowed_extensions=['pdf']),
         ]
     )
-    contrat_actif = models.BooleanField(default=True)
+    actif = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.numero_contrat} - {self.objet[:20]}"

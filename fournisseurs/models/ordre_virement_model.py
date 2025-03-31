@@ -37,7 +37,8 @@ class OrdreVirement(AuditModel):
         Beneficiaire,
         on_delete=models.PROTECT,
         related_name='ordres_virements',
-        verbose_name="Bénéficiaire"
+        verbose_name="Bénéficiaire",
+        limit_choices_to={'actif': True}
     )
     compte_tresorerie = models.ForeignKey(
         "fournisseurs.CompteTresorerie",
@@ -45,7 +46,8 @@ class OrdreVirement(AuditModel):
         related_name='ordres_virements_compte',
         verbose_name="Compte bancaire",
         null=True,
-        blank=True
+        blank=True,
+        limit_choices_to={'actif': True}
     )
     compte_tresorerie_emetteur = models.ForeignKey(
         "fournisseurs.CompteTresorerie",
@@ -53,7 +55,8 @@ class OrdreVirement(AuditModel):
         related_name='ordres_virements_emetteur',
         verbose_name="Compte bancaire émetteur",
         null=True,
-        blank=True
+        blank=True,
+        limit_choices_to={'actif': True}
     )
     montant = models.DecimalField(
         max_digits=10,

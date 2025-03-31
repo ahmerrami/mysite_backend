@@ -1,7 +1,7 @@
 # models/facture_model.py
 from django.db import models
 from django.db.models import UniqueConstraint
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
 from .audit_model import AuditModel
@@ -12,15 +12,74 @@ from .ordre_virement_model import OrdreVirement
 from fournisseurs.validators import verifier_modifications_autorisees
 from fournisseurs.choices import *  # Importer toutes les constantes
 
-class Facture(AuditModel):
+
+class BaseFacture(AuditModel):
     """
-    Modèle représentant une facture associée à un bénéficiaire et un contrat.
+    Classe abstraite représentant une facture ou un avoir.
     """
+
+    num_facture = models.CharField(max_length=50, verbose_name="Numéro de facture")
+    date_facture = models.DateField(verbose_name="Date facture")
+    date_echeance = models.DateField(verbose_name="Date d'échéance")
+
+    mnt_tva = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TVA", default=0.00)
+    montant_ttc = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TTC", default=0.00)
+    mnt_RAS_TVA = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS TVA", default=0.00)
+    mnt_RAS_IS = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS IS", default=0.00)
+    mnt_RG = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RG", default=0.00)
+    mnt_net_apayer = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant net à payer", default=0.00)
+
+    date_paiement = models.DateField(verbose_name="Date paiement",
+        null=True,
+        blank=True
+    )
+    statut = models.CharField(
+        max_length=30,
+        choices=STATUT_FAC_CHOICES,
+        default='attente',
+        verbose_name="Statut"
+    )
+
+    class Meta:
+        abstract = True
+
+    def update_statut(self):
+        """
+        Met à jour le statut de la facture en fonction de l'état de l'ordre de virement associé.
+        """
+        if not self.ordre_virement:
+            self.statut = 'attente'
+        elif not self.ordre_virement.valide_pour_signature:
+            self.statut = 'etablissement'
+        elif not self.ordre_virement.remis_a_banque:
+            self.statut = 'signature'
+        elif not self.ordre_virement.compte_debite:
+            self.statut = 'banque'
+        else:
+            self.statut = 'payee'
+
+    def calculate_montants(self):
+        """
+        Calcule les montants liés aux retenues et au net à payer.
+        """
+        pass
+
+    def save(self, *args, **kwargs):
+        self.calculate_montants()
+        self.update_statut()
+        super().save(*args, **kwargs)
+
+class Facture(BaseFacture):
+    """
+    Modèle représentant une facture.
+    """
+
     beneficiaire = models.ForeignKey(
         Beneficiaire,
         on_delete=models.CASCADE,
         related_name='factures_beneficiaire',
-        verbose_name="Bénéficiaire"
+        verbose_name="Bénéficiaire",
+        limit_choices_to={'actif': True}
     )
     contrat = models.ForeignKey(
         Contrat,
@@ -30,16 +89,7 @@ class Facture(AuditModel):
         null=True,
         blank=True
     )
-    num_facture = models.CharField(max_length=50, verbose_name="Numéro de facture")
-    date_facture = models.DateField(verbose_name="Date facture")
-    date_echeance = models.DateField(verbose_name="Date d'échéance")
-    montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT")
-    mnt_tva = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TVA", default=0.00)
-    montant_ttc = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TTC", default=0.00)
-    mnt_RAS_TVA = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS TVA", default=0.00)
-    mnt_RAS_IS = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS IS", default=0.00)
-    mnt_RG = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RG", default=0.00)
-    mnt_net_apayer = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant net à payer", default=0.00)
+    montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT", validators=[MinValueValidator(0.01)])
     proforma_pdf = models.FileField(
         upload_to='proformas/',
         verbose_name="Proforma PDF",
@@ -74,6 +124,7 @@ class Facture(AuditModel):
         null=True,
         blank=True
     )
+
     ordre_virement = models.ForeignKey(
         OrdreVirement,
         on_delete=models.SET_NULL,
@@ -81,18 +132,6 @@ class Facture(AuditModel):
         verbose_name="Ordre de virement",
         null=True,
         blank=True
-    )
-
-    date_paiement = models.DateField(verbose_name="Date paiement",
-        null=True,
-        blank=True
-    )
-
-    statut = models.CharField(
-        max_length=30,
-        choices=STATUT_FAC_CHOICES,
-        default='attente',
-        verbose_name="Statut de la facture"
     )
 
     class Meta:
@@ -103,20 +142,6 @@ class Facture(AuditModel):
             )
         ]
 
-    def update_statut(self):
-        """
-        Met à jour le statut de la facture en fonction de l'état de l'ordre de virement associé.
-        """
-        if not self.ordre_virement:
-            self.statut = 'attente'
-        elif not self.ordre_virement.valide_pour_signature:
-            self.statut = 'etablissement'
-        elif not self.ordre_virement.remis_a_banque:
-            self.statut = 'signature'
-        elif not self.ordre_virement.compte_debite:
-            self.statut = 'banque'
-        else:
-            self.statut = 'payee'
 
     def calculate_montants(self):
         """
@@ -133,10 +158,8 @@ class Facture(AuditModel):
             self.mnt_RG = self.montant_ttc * (self.contrat.taux_RG / 100)
             self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
         else:
-            self.mnt_RAS_TVA = 0
-            self.mnt_RAS_IS = 0
-            self.mnt_RG = 0
-            self.mnt_net_apayer = self.montant_ht+self.mnt_tva  # Si pas de contrat, net à payer est égal à HT
+            self.montant_ttc = self.montant_ht + self.mnt_tva
+            self.mnt_net_apayer = self.montant_ttc
 
     def clean(self):
         """
@@ -166,14 +189,6 @@ class Facture(AuditModel):
 
         self.valider_modifications_si_virement_encours()
 
-    def save(self, *args, **kwargs):
-        """
-        Redéfinition de la méthode save pour calculer automatiquement les montants avant la sauvegarde.
-        """
-        self.calculate_montants()
-        self.update_statut()
-        super().save(*args, **kwargs)
-
     def valider_modifications_si_virement_encours(self):
         if self.pk:
             ancienne_instance = Facture.objects.get(pk=self.pk)
@@ -186,3 +201,60 @@ class Facture(AuditModel):
 
     def __str__(self):
         return f"Facture {self.num_facture} - {self.beneficiaire.raison_sociale} (Statut: {self.get_statut_display()})"
+
+
+class Avoir(BaseFacture):
+    """
+    Modèle représentant un avoir.
+    """
+    facture_associee = models.ForeignKey(
+        Facture,
+        on_delete=models.CASCADE,
+        related_name='facture_avoirs',
+        verbose_name="Facture associée",
+        limit_choices_to={'statut': 'attente'}
+    )
+    montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT", validators=[MaxValueValidator(-0.01)])
+    avoir_pdf = models.FileField(
+        upload_to='avoirs/',
+        verbose_name="Avoir PDF",
+        help_text="Fichier PDF de l'avoir",
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['pdf']),
+        ]
+    )
+    ordre_virement = models.ForeignKey(
+        OrdreVirement,
+        on_delete=models.SET_NULL,
+        related_name='avoirs_ov',
+        verbose_name="Ordre de virement",
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f"Avoir {self.num_facture} - {self.facture_associee.beneficiaire.raison_sociale} (Statut: {self.get_statut_display()})"
+
+    def calculate_montants(self):
+        """
+        Calcule les montants liés aux retenues et au net à payer.
+        """
+        if self.facture_associee and self.facture_associee.contrat:
+            self.mnt_tva = self.montant_ht * (self.facture_associee.contrat.taux_de_TVA / 100)
+            self.montant_ttc = self.montant_ht + self.mnt_tva
+            if self.facture_associee.mnt_RAS_TVA:
+                self.mnt_RAS_TVA = self.mnt_tva * (self.facture_associee.contrat.taux_RAS_TVA / 100)
+            else:
+                self.mnt_RAS_TVA = 0
+            self.mnt_RAS_IS = self.montant_ht * (self.facture_associee.contrat.taux_RAS_IS / 100)
+            self.mnt_RG = self.montant_ttc * (self.facture_associee.contrat.taux_RG / 100)
+            self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
+        else:
+            self.mnt_net_apayer = self.montant_ht + self.mnt_tva
+
+        """
+        Mettre l'échéance à la même date que la facture associée
+        """
+        self.date_echeance = self.facture_associee.date_echeance
