@@ -24,8 +24,8 @@ def get_beneficiaires(request):
     type_ov = request.GET.get('type_ov')
     societe = get_object_or_404(Beneficiaire, raison_sociale=settings.SOCIETE)
 
-    beneficiaires = Beneficiaire.objects.exclude(id=societe.id) if type_ov == 'Virement' else (
-        Beneficiaire.objects.filter(id=societe.id) if type_ov == 'Transfert' else Beneficiaire.objects.all()
+    beneficiaires = Beneficiaire.objects.filter(actif=True).exclude(id=societe.id) if type_ov == 'Virement' else (
+        Beneficiaire.objects.filter(id=societe.id, actif=True) if type_ov == 'Transfert' else Beneficiaire.objects.filter(actif=True)
     )
 
     data = {beneficiaire.id: str(beneficiaire) for beneficiaire in beneficiaires}
@@ -37,7 +37,7 @@ def get_comptes_tresorerie(request):
     if not beneficiaire_id or not beneficiaire_id.isdigit():
         return JsonResponse({})
 
-    comptes_tresorerie = CompteTresorerie.objects.filter(beneficiaire_id=beneficiaire_id)
+    comptes_tresorerie = CompteTresorerie.objects.filter(beneficiaire_id=beneficiaire_id, actif=True)
     data = {compte.id: str(compte) for compte in comptes_tresorerie}
     return JsonResponse(data)
 
@@ -61,7 +61,7 @@ def get_contrats_all(request):
     if not beneficiaire_id or not beneficiaire_id.isdigit():
         return JsonResponse({})
 
-    contrats = Contrat.objects.filter(beneficiaire_id=beneficiaire_id)
+    contrats = Contrat.objects.filter(beneficiaire_id=beneficiaire_id, actif=True)
     data = {contrat.id: str(contrat) for contrat in contrats}
     return JsonResponse(data)
 

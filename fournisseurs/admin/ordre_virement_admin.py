@@ -72,7 +72,7 @@ class OrdreVirementForm(forms.ModelForm):
                 societe = Beneficiaire.objects.get(raison_sociale=societe_name)
                 # Restreint les choix du champ 'compte_bancaire_emetteur' à ceux associés à la société
                 self.fields['compte_tresorerie_emetteur'].queryset = CompteTresorerie.objects.filter(
-                    beneficiaire=societe
+                    beneficiaire=societe, actif=True
                 )
             except Beneficiaire.DoesNotExist:
                 # Aucun compte bancaire n'est disponible si la société n'est pas trouvée
