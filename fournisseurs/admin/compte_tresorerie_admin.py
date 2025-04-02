@@ -2,7 +2,8 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from django import forms
-from ..models.compte_tresorerie_model import CompteTresorerie
+from fournisseurs.models.compte_tresorerie_model import CompteTresorerie
+from fournisseurs.admin.facture_admin import fournisseur_admin
 
 class CompteTresorerieAdminForm(forms.ModelForm):
     class Meta:
@@ -22,6 +23,9 @@ class CompteTresorerieAdminForm(forms.ModelForm):
                 self.fields['rib'].widget.attrs['style'] = 'display: none;'
                 self.fields['attestation_rib_pdf'].widget.attrs['style'] = 'display: none;'
 
+
+#@admin.register(Beneficiaire)
+@admin.register(CompteTresorerie, site=fournisseur_admin)
 class CompteTresorerieAdmin(ImportExportModelAdmin):
     form = CompteTresorerieAdminForm
     list_display = ('beneficiaire', 'type_compte', 'banque', 'rib', 'nom_caisse')

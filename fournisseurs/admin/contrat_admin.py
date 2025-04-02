@@ -4,6 +4,10 @@ from import_export.admin import ImportExportModelAdmin
 from ..models.contrat_model import Contrat
 
 #@admin.register(Contrat)
+from fournisseurs.admin.facture_admin import fournisseur_admin
+
+#@admin.register(Beneficiaire)
+@admin.register(Contrat, site=fournisseur_admin)
 class ContratAdmin(ImportExportModelAdmin):
     list_display = ('numero_contrat', 'objet', 'beneficiaire')
     list_filter = ('moe','type_contrat')

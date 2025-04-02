@@ -1,12 +1,128 @@
+# /fournisseurs/admin/facture_admin.py
 from django.contrib import admin
+from django.contrib.admin import AdminSite
 from django.http import HttpResponse
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+
+from django.urls import path, reverse
+from django.shortcuts import render
+from django.db import models
+from django.db.models import Count, Case, When, IntegerField, Sum, Q
+
 from import_export import resources, fields
 from import_export.admin import ExportMixin
-from import_export.formats import base_formats
 from django.utils import timezone
-from fournisseurs.models.facture_model import Facture, Avoir
+from datetime import timedelta
+from fournisseurs.models.facture_model import Facture, Avoir, Beneficiaire
 
+class FournisseurAdminSite(AdminSite):
+    site_header = "Administration des Fournisseurs"
+    site_title = "Fournisseurs Admin"
+    index_title = "Tableau de bord"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('tableau-bord-fournisseurs/',
+                self.admin_view(self.tableau_bord_view),
+                name='tableau_bord_fournisseurs'),
+            path('', self.admin_view(self.index)),
+        ]
+        return custom_urls + urls
+
+    def index(self, request):
+        return self.tableau_bord_view(request)
+
+    def tableau_bord_view(self, request):
+        # Définir les dates de référence
+        aujourdhui = timezone.now().date()
+        une_semaine = aujourdhui + timedelta(days=7)
+        deux_semaines = aujourdhui + timedelta(days=14)
+        un_mois = aujourdhui + timedelta(days=30)
+
+        # Filtrer les factures en instance de paiement (statut différent de 'payee')
+        factures = Facture.objects.exclude(statut='payee')
+
+        # Annoter chaque bénéficiaire avec les comptages par période d'échéance
+        fournisseurs = Beneficiaire.objects.filter(
+            factures_beneficiaire__in=factures
+        ).distinct().annotate(
+            moins_une_semaine=Count(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__gte=aujourdhui) &
+                        Q(factures_beneficiaire__date_echeance__lte=une_semaine) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            moins_deux_semaines=Count(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__gt=une_semaine) &
+                        Q(factures_beneficiaire__date_echeance__lte=deux_semaines) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            moins_un_mois=Count(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__gt=deux_semaines) &
+                        Q(factures_beneficiaire__date_echeance__lte=un_mois) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            plus_un_mois=Count(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__gt=un_mois) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            total=Count(
+                Case(
+                    When(
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            montant_total=Sum(
+                Case(
+                    When(
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then='factures_beneficiaire__mnt_net_apayer'
+                    ),
+                    output_field=models.DecimalField()
+                )
+            )
+        ).order_by('raison_sociale')
+
+        context = {
+            **self.each_context(request),
+            'fournisseurs': fournisseurs,
+            'aujourdhui': aujourdhui,
+            'title': 'Tableau de bord',
+            'opts': Facture._meta,
+        }
+
+        return render(request, 'admin/fournisseurs/tableau_bord_fournisseurs.html', context)
+
+
+fournisseur_admin = FournisseurAdminSite(name='fournisseur_admin')
 
 class FactureResourceSTD(resources.ModelResource):
     beneficiaire = fields.Field(attribute='beneficiaire__raison_sociale', column_name='Beneficiaire')
@@ -38,19 +154,20 @@ class FactureResourceDLP(resources.ModelResource):
         export_order = fields
 
 
-@admin.register(Facture)
+#@admin.register(Facture)
+@admin.register(Facture, site=fournisseur_admin)
 class FactureAdmin(ExportMixin, admin.ModelAdmin):
     change_list_template = "admin/fournisseurs/facture/change_list.html"
-    
+
     fields = ('beneficiaire', 'contrat', 'num_facture', 'date_facture',
              'date_echeance', 'montant_ht', 'mnt_tva', 'montant_ttc',
              'mnt_RAS_IS', 'mnt_RAS_TVA', 'mnt_RG', 'mnt_net_apayer',
              'proforma_pdf', 'facture_pdf', 'PV_reception_pdf', 'date_execution',
              'ordre_virement', 'statut')
-    
+
     list_display = ('num_facture', 'beneficiaire', 'montant_ttc',
                    'mnt_net_apayer', 'date_echeance', 'ordre_virement')
-    
+
     search_fields = ('num_facture', 'beneficiaire__raison_sociale')
     list_filter = ('statut', 'date_echeance', 'beneficiaire')
     readonly_fields = ('montant_ttc', 'mnt_net_apayer', 'created_by',
@@ -64,21 +181,21 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
 
     def export_std_selected(self, request, queryset):
         return self.process_export(request, FactureResourceSTD(), queryset)
-    
+
     export_std_selected.short_description = _("Exporter la sélection (Standard)")
-    
+
     def export_dlp_selected(self, request, queryset):
         return self.process_export(request, FactureResourceDLP(), queryset)
-    
+
     export_dlp_selected.short_description = _("Exporter la sélection (Délais Paiement)")
-    
+
     def process_export(self, request, resource, queryset=None):
         if queryset is None:
             queryset = self.get_queryset(request)
-        
+
         dataset = resource.export(queryset)
         export_format = request.POST.get('format', 'csv')
-        
+
         if export_format == 'xlsx':
             export_data = dataset.xlsx
             content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -87,14 +204,24 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
             export_data = dataset.csv
             content_type = 'text/csv'
             file_extension = 'csv'
-        
+
         export_type = 'dlp' if isinstance(resource, FactureResourceDLP) else 'std'
         response = HttpResponse(export_data, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="export_{export_type}_{timezone.now().date()}.{file_extension}"'
         return response
 
+    def get_urls(self):
+        urls = super().get_urls()
+        # Supprimez la définition de l'URL ici, elle est maintenant dans FournisseurAdminSite
+        return urls
 
-@admin.register(Avoir)
+    def lien_tableau_bord(self, obj):
+        return format_html('<a href="{}" target="_blank">Voir le tableau de bord</a>', "/admin/fournisseurs/tableau_bord_fournisseurs/")
+
+    lien_tableau_bord.short_description = "Tableau de bord"
+
+#@admin.register(Avoir)
+@admin.register(Avoir, site=fournisseur_admin)
 class AvoirAdmin(admin.ModelAdmin):
     fields = ('num_facture', 'facture_associee', 'date_facture', 'date_echeance',
               'montant_ht', 'mnt_tva', 'montant_ttc', 'mnt_RAS_TVA', 'mnt_RAS_IS',

@@ -17,6 +17,10 @@ from fournisseurs.models.ordre_virement_model import OrdreVirement
 from fournisseurs.models.facture_model import Facture
 from fournisseurs.views import generate_ov_pdf
 
+from fournisseurs.admin.facture_admin import fournisseur_admin
+
+#@admin.register(Beneficiaire)
+
 import csv
 
 # Define a custom resource for OV
@@ -103,6 +107,7 @@ export_ov_as_csv.short_description = "Exporter les OV en CSV"
 # Enregistrement du modèle OrdreVirement dans l'administration Django
 # @admin.register(OrdreVirement)
 
+@admin.register(OrdreVirement, site=fournisseur_admin)
 class OrdreVirementAdmin(ImportExportModelAdmin):
     form = OrdreVirementForm
     resource_class = OrdreVirementResource
