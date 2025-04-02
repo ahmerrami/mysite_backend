@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import path, reverse
 from django.shortcuts import render
 from django.db import models
+from django.db.models import F
 from django.db.models import Count, Case, When, IntegerField, Sum, Q
 
 from import_export import resources, fields
@@ -44,10 +45,70 @@ class FournisseurAdminSite(AdminSite):
         # Filtrer les factures en instance de paiement (statut différent de 'payee')
         factures = Facture.objects.exclude(statut='payee')
 
+        # Calculer les totaux globaux
+        total_global = factures.aggregate(
+            factures_en_retard=Count(
+                Case(
+                    When(Q(date_echeance__lt=aujourdhui), then=1),
+                    output_field=IntegerField()
+                )
+            ),
+            moins_une_semaine=Count(
+                Case(
+                    When(
+                        Q(date_echeance__gte=aujourdhui) & Q(date_echeance__lte=une_semaine),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            moins_deux_semaines=Count(
+                Case(
+                    When(
+                        Q(date_echeance__gt=une_semaine) & Q(date_echeance__lte=deux_semaines),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            moins_un_mois=Count(
+                Case(
+                    When(
+                        Q(date_echeance__gt=deux_semaines) & Q(date_echeance__lte=un_mois),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            plus_un_mois=Count(
+                Case(
+                    When(Q(date_echeance__gt=un_mois), then=1),
+                    output_field=IntegerField()
+                )
+            ),
+            total=Count('id'),
+            montant_total=Sum(
+                Case(
+                    When(~Q(statut='payee'), then=F('mnt_net_apayer')),
+                    output_field=models.DecimalField()
+                )
+            )
+        )
+
         # Annoter chaque bénéficiaire avec les comptages par période d'échéance
         fournisseurs = Beneficiaire.objects.filter(
             factures_beneficiaire__in=factures
         ).distinct().annotate(
+            factures_en_retard = Count(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__lt=aujourdhui) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                ),
+            ),
             moins_une_semaine=Count(
                 Case(
                     When(
@@ -104,7 +165,7 @@ class FournisseurAdminSite(AdminSite):
                 Case(
                     When(
                         ~Q(factures_beneficiaire__statut='payee'),
-                        then='factures_beneficiaire__mnt_net_apayer'
+                        then=F('factures_beneficiaire__mnt_net_apayer')
                     ),
                     output_field=models.DecimalField()
                 )
@@ -114,6 +175,7 @@ class FournisseurAdminSite(AdminSite):
         context = {
             **self.each_context(request),
             'fournisseurs': fournisseurs,
+            'total_global': total_global,
             'aujourdhui': aujourdhui,
             'title': 'Tableau de bord',
             'opts': Facture._meta,

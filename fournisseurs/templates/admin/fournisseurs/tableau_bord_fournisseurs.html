@@ -50,6 +50,7 @@
             <thead>
                 <tr>
                     <th>Bénéficiaire</th>
+                    <th class="text-center">En retard</th>
                     <th class="text-center">< 7j</th>
                     <th class="text-center">< 14j</th>
                     <th class="text-center">< 30j</th>
@@ -67,6 +68,9 @@
                             {{ f.raison_sociale|truncatechars:40 }}
                         </a>
                     </td>
+                    <td class="text-center {% if f.factures_en_retard %}warning{% endif %}">
+                        {{ f.factures_en_retard|default_if_none:"0" }}
+                    </td>
                     <td class="text-center {% if f.moins_une_semaine %}warning{% endif %}">
                         {{ f.moins_une_semaine|default_if_none:"0" }}
                     </td>
@@ -74,7 +78,7 @@
                     <td class="text-center">{{ f.moins_un_mois|default_if_none:"0" }}</td>
                     <td class="text-center">{{ f.plus_un_mois|default_if_none:"0" }}</td>
                     <td class="text-center">{{ f.total|default_if_none:"0" }}</td>
-                    <td class="text-right nowrap {% if f.montant_total > 10000 %}high-amount{% endif %}">
+                    <td class="text-right nowrap">
                         {{ f.montant_total|default:"0.00"|floatformat:2 }} MAD
                     </td>
                 </tr>
@@ -83,6 +87,7 @@
             <tfoot>
                 <tr class="total">
                     <td>Total général</td>
+                    <td class="text-center">{{ total_global.factures_en_retard|default_if_none:"0" }}</td>
                     <td class="text-center">{{ total_global.moins_une_semaine|default_if_none:"0" }}</td>
                     <td class="text-center">{{ total_global.moins_deux_semaines|default_if_none:"0" }}</td>
                     <td class="text-center">{{ total_global.moins_un_mois|default_if_none:"0" }}</td>

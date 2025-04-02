@@ -8,6 +8,7 @@ from fournisseurs.admin.facture_admin import fournisseur_admin
 @admin.register(Beneficiaire, site=fournisseur_admin)
 class BeneficiaireAdmin(ImportExportModelAdmin):
     list_display = ('raison_sociale', 'registre_commerce', 'identifiant_fiscale', 'code_ice')
+    ordering = ['raison_sociale']
     search_fields = ('raison_sociale', 'identifiant_fiscale')
     readonly_fields = ('created_by','updated_by')
     list_per_page = 15
