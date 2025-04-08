@@ -18,4 +18,4 @@ class ContratAdmin(ImportExportModelAdmin):
     def has_import_permission(self, request):
         return request.user.is_superuser
 
-admin.site.register(Contrat, ContratAdmin)
+#admin.site.register(Contrat, ContratAdmin)

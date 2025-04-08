@@ -159,7 +159,7 @@ class Facture(BaseFacture):
             self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
         else:
             self.montant_ttc = self.montant_ht + self.mnt_tva
-            self.mnt_net_apayer = self.montant_ttc
+            self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
 
     def clean(self):
         """
@@ -187,7 +187,10 @@ class Facture(BaseFacture):
         if self.contrat and self.beneficiaire and self.contrat.beneficiaire != self.beneficiaire:
             raise ValidationError("Le contrat sélectionné ne correspond pas au bénéficiaire de la facture.")
 
-        self.valider_modifications_si_virement_encours()
+        if self.date_execution and self.date_facture and self.date_execution > self.date_facture:
+            raise ValidationError("La date facture doit être postérieure à la date réception.")
+
+        #self.valider_modifications_si_virement_encours()
 
     def valider_modifications_si_virement_encours(self):
         if self.pk:

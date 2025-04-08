@@ -17,6 +17,8 @@ from django.utils import timezone
 from datetime import timedelta
 from fournisseurs.models.facture_model import Facture, Avoir, Beneficiaire
 
+from fournisseurs.filters import DateRangeFilter
+
 class FournisseurAdminSite(AdminSite):
     site_header = "Administration des Fournisseurs"
     site_title = "Fournisseurs Admin"
@@ -186,6 +188,24 @@ class FournisseurAdminSite(AdminSite):
 
 fournisseur_admin = FournisseurAdminSite(name='fournisseur_admin')
 
+# Cette classe est pour créer un lien dans l'admin principal
+class FournisseursAdminLink(admin.ModelAdmin):
+    def get_urls(self):
+        return [
+            path('fournisseurs/',
+                 self.admin_site.admin_view(self.redirect_to_fournisseur_admin),
+                name='fournisseurs_admin_link')
+        ]
+
+    def redirect_to_fournisseur_admin(self, request):
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(reverse('fournisseur_admin:index'))
+
+    def has_module_permission(self, request):
+        return True
+
+admin.site.register(Facture, FournisseursAdminLink)
+
 class FactureResourceSTD(resources.ModelResource):
     beneficiaire = fields.Field(attribute='beneficiaire__raison_sociale', column_name='Beneficiaire')
     contrat = fields.Field(attribute='contrat__numero_contrat', column_name='Contrat')
@@ -215,6 +235,9 @@ class FactureResourceDLP(resources.ModelResource):
                  'echeance_contractuelle', 'date_reglement', 'mnt_net_apayer')
         export_order = fields
 
+class EcheanceDateFilter(DateRangeFilter):
+    date_field = 'date_echeance'  # Champ de la base de données à filtrer
+    title = "Echéance"  # Nom qui apparaît dans la sidebar
 
 #@admin.register(Facture)
 @admin.register(Facture, site=fournisseur_admin)
@@ -227,11 +250,16 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
              'proforma_pdf', 'facture_pdf', 'PV_reception_pdf', 'date_execution',
              'ordre_virement', 'statut')
 
-    list_display = ('num_facture', 'beneficiaire', 'montant_ttc',
+    list_display = ('num_facture', 'beneficiaire', 'contrat', 'montant_ttc',
                    'mnt_net_apayer', 'date_echeance', 'ordre_virement')
 
-    search_fields = ('num_facture', 'beneficiaire__raison_sociale')
-    list_filter = ('statut', 'date_echeance', 'beneficiaire')
+    search_fields = ('contrat__numero_contrat', 'num_facture', 'beneficiaire__raison_sociale')
+    #list_filter = ('statut', 'date_echeance', 'beneficiaire')
+    list_filter = (
+        EcheanceDateFilter,
+        'statut',
+        'beneficiaire'
+    )
     readonly_fields = ('montant_ttc', 'mnt_net_apayer', 'created_by',
                       'updated_by', 'ordre_virement', 'date_paiement', 'statut')
     list_per_page = 25

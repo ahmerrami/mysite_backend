@@ -37,7 +37,7 @@ class CompteTresorerie(AuditModel):
     )
     rib = models.CharField(
         max_length=24,
-        unique=True,
+        unique=False,
         verbose_name="RIB",
         help_text="Numéro du compte bancaire (uniquement pour les comptes bancaires)",
         validators=[
@@ -51,6 +51,11 @@ class CompteTresorerie(AuditModel):
         },
         blank=True,
         null=True
+    )
+    est_nantissement = models.BooleanField(
+        default=False,
+        verbose_name="Compte en nantissement",
+        help_text="Cochez si ce compte est utilisé pour un nantissement (peut partager le RIB)"
     )
     attestation_rib_pdf = models.FileField(
         upload_to='attestations_rib/',
@@ -89,11 +94,6 @@ class CompteTresorerie(AuditModel):
     class Meta:
         ordering = ['beneficiaire']
 
-    def __str__(self):
-        if self.type_compte == 'bancaire':
-            return f"{self.banque or 'Banque inconnue'} - {self.rib or 'RIB non défini'} (Bénéficiaire: {self.beneficiaire.raison_sociale})"
-        return f"Caisse: {self.nom_caisse or 'Non défini'} - {self.emplacement_caisse or 'Non défini'} (Bénéficiaire: {self.beneficiaire.raison_sociale})"
-
     def clean(self):
         """
         Validation des données avant sauvegarde.
@@ -104,10 +104,20 @@ class CompteTresorerie(AuditModel):
             if not self.rib:
                 raise ValidationError("Le RIB est obligatoire pour un compte bancaire.")
 
-            # Vérifiez si le RIB est déjà utilisé dans un ordre de virement
-            if self.pk:  # Vérifiez si l'objet existe déjà en base de données
+            # Vérification de l'unicité du RIB pour les comptes non-nantissement
+            if not self.est_nantissement:
+                qs = CompteTresorerie.objects.filter(rib=self.rib, est_nantissement=False)
+                if self.pk:
+                    qs = qs.exclude(pk=self.pk)
+                if qs.exists():
+                    raise ValidationError(
+                        {"rib": "Ce RIB est déjà utilisé par un autre bénéficiaire (non-nantissement)."}
+                    )
+
+            # Vérification des ordres de virement
+            if self.pk and not self.est_nantissement:
                 old_instance = CompteTresorerie.objects.get(pk=self.pk)
-                if old_instance.rib != self.rib:  # Le RIB a été modifié
+                if old_instance.rib != self.rib:
                     if OrdreVirement.objects.filter(compte_tresorerie=old_instance).exists():
                         raise ValidationError(
                             {"rib": "Ce RIB est déjà utilisé dans un ou plusieurs ordres de virement et ne peut pas être modifié."}
@@ -118,3 +128,8 @@ class CompteTresorerie(AuditModel):
                 raise ValidationError("Le nom de la caisse est obligatoire.")
             if not self.emplacement_caisse:
                 raise ValidationError("L'emplacement de la caisse est obligatoire.")
+
+    def __str__(self):
+        if self.type_compte == 'bancaire':
+            return f"{self.banque or 'Banque inconnue'} - {self.rib or 'RIB non défini'} (Bénéficiaire: {self.beneficiaire.raison_sociale})"
+        return f"Caisse: {self.nom_caisse or 'Non défini'} - {self.emplacement_caisse or 'Non défini'} (Bénéficiaire: {self.beneficiaire.raison_sociale})"
