@@ -76,6 +76,8 @@ class OrdreVirementForm(forms.ModelForm):
         else:
             self.fields['compte_tresorerie_emetteur'].queryset = CompteTresorerie.objects.none()
 
+        self.fields['beneficiaire'].queryset = Beneficiaire.objects.filter(actif=True).order_by('raison_sociale')
+
 def export_ov_as_csv(modeladmin, request, queryset):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="ordres_virement.csv"'

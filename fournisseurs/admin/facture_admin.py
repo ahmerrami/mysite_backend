@@ -10,6 +10,7 @@ from django.shortcuts import render
 from django.db import models
 from django.db.models import F
 from django.db.models import Count, Case, When, IntegerField, Sum, Q
+from django import forms
 
 from import_export import resources, fields
 from import_export.admin import ExportMixin
@@ -239,9 +240,18 @@ class EcheanceDateFilter(DateRangeFilter):
     date_field = 'date_echeance'  # Champ de la base de données à filtrer
     title = "Echéance"  # Nom qui apparaît dans la sidebar
 
-#@admin.register(Facture)
+class FactureForm(forms.ModelForm):
+    class Meta:
+        model = Facture
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['beneficiaire'].queryset = Beneficiaire.objects.filter(actif=True).order_by('raison_sociale')
+
 @admin.register(Facture, site=fournisseur_admin)
 class FactureAdmin(ExportMixin, admin.ModelAdmin):
+    form = FactureForm
     change_list_template = "admin/fournisseurs/facture/change_list.html"
 
     fields = ('beneficiaire', 'contrat', 'num_facture', 'date_facture',

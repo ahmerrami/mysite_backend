@@ -79,7 +79,8 @@ class Facture(BaseFacture):
         on_delete=models.CASCADE,
         related_name='factures_beneficiaire',
         verbose_name="Bénéficiaire",
-        limit_choices_to={'actif': True}
+        limit_choices_to={'actif': True},
+        #queryset=Beneficiaire.objects.filter(actif=True).order_by('raison_sociale')
     )
     contrat = models.ForeignKey(
         Contrat,
