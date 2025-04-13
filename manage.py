@@ -1,12 +1,16 @@
-#!/usr/bin/env python3.9
-"""Django's command-line utility for administrative tasks."""
+#!/usr/bin/env python
 import os
 import sys
 
-
 def main():
-    """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+    # Configuration automatique selon l'environnement
+    if os.environ.get('DJANGO_ENV') == 'production':
+        settings_module = 'mysite.settings.prod'
+    else:
+        settings_module = 'mysite.settings.dev'
+
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -16,7 +20,6 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
     execute_from_command_line(sys.argv)
-
 
 if __name__ == '__main__':
     main()
