@@ -7,21 +7,23 @@
 <style>
     /* Styles intégrés avec l'admin */
     #changelist table.dashboard th {
-    background: var(--header-bg, #004b7c); /* Bleu foncé par défaut si la variable est absente */
-    color: white; /* Texte en blanc pour le contraste */
-    text-transform: uppercase; /* Rendre le texte plus lisible */
-    font-weight: bold;
-    padding: 10px;
+        background: var(--header-bg, #004b7c);
+        color: white;
+        text-transform: uppercase;
+        font-weight: bold;
+        padding: 10px;
     }
 
     #changelist table.dashboard {
         width: 100%;
         margin: 15px 0;
+        border-collapse: collapse;
     }
     #changelist table.dashboard th,
     #changelist table.dashboard td {
         padding: 8px 10px;
         vertical-align: middle;
+        border: 1px solid #e1e1e1;
     }
     #changelist table.dashboard th {
         background: var(--header-bg);
@@ -36,6 +38,24 @@
     }
     .dashboard .nowrap { white-space: nowrap; }
     .high-amount { color: red; font-weight: bold; }
+    .montant { color: #006600; font-weight: bold; }
+    .montant-retard { color: #ba2121; }
+    .montant-urgent { color: #ff8c00; }
+    
+    /* Couleurs alternées pour les colonnes */
+    .col-nb { background-color: #f8f8f8; }
+    .col-montant { background-color: #f0f0f0; }
+    
+    /* Couleurs spécifiques pour les lignes */
+    tr.row1 { background-color: #ffffff; }
+    tr.row2 { background-color: #f9f9f9; }
+    
+    /* Style pour les en-têtes groupés */
+    .group-header {
+        background-color: #004b7c;
+        color: white;
+        text-align: center;
+    }
 </style>
 {% endblock %}
 
@@ -46,17 +66,31 @@
 {% block content %}
 <div class="module" id="changelist">
     <div class="results">
-        <table class="dashboard table table-striped">
+        <table class="dashboard table">
             <thead>
                 <tr>
-                    <th>Bénéficiaire</th>
-                    <th class="text-center">En retard</th>
-                    <th class="text-center">< 7j</th>
-                    <th class="text-center">< 14j</th>
-                    <th class="text-center">< 30j</th>
-                    <th class="text-center">> 30j</th>
-                    <th class="text-center">Total</th>
-                    <th class="text-right nowrap">Montant TTC</th>
+                    <th rowspan="2" style="background-color: #004b7c;">Bénéficiaire</th>
+                    <th colspan="2" class="group-header">En retard</th>
+                    <th colspan="2" class="group-header">< 7j</th>
+                    <th colspan="2" class="group-header">< 14j</th>
+                    <th colspan="2" class="group-header">< 30j</th>
+                    <th colspan="2" class="group-header">> 30j</th>
+                    <th colspan="2" class="group-header">Total</th>
+                </tr>
+                <tr>
+                    <!-- Sous-en-têtes pour les colonnes -->
+                    <th class="text-center col-nb">Nb</th>
+                    <th class="text-center col-montant">MAD</th>
+                    <th class="text-center col-nb">Nb</th>
+                    <th class="text-center col-montant">MAD</th>
+                    <th class="text-center col-nb">Nb</th>
+                    <th class="text-center col-montant">MAD</th>
+                    <th class="text-center col-nb">Nb</th>
+                    <th class="text-center col-montant">MAD</th>
+                    <th class="text-center col-nb">Nb</th>
+                    <th class="text-center col-montant">MAD</th>
+                    <th class="text-center col-nb">Nb</th>
+                    <th class="text-right nowrap col-montant">MAD</th>
                 </tr>
             </thead>
             <tbody>
@@ -68,17 +102,38 @@
                             {{ f.raison_sociale|truncatechars:40 }}
                         </a>
                     </td>
-                    <td class="text-center {% if f.factures_en_retard %}warning{% endif %}">
+                    <!-- En retard -->
+                    <td class="text-center col-nb {% if f.factures_en_retard %}warning{% endif %}">
                         {{ f.factures_en_retard|default_if_none:"0" }}
                     </td>
-                    <td class="text-center {% if f.moins_une_semaine %}warning{% endif %}">
+                    <td class="text-right montant-retard nowrap col-montant">
+                        {{ f.montant_retard|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- < 7j -->
+                    <td class="text-center col-nb {% if f.moins_une_semaine %}warning{% endif %}">
                         {{ f.moins_une_semaine|default_if_none:"0" }}
                     </td>
-                    <td class="text-center">{{ f.moins_deux_semaines|default_if_none:"0" }}</td>
-                    <td class="text-center">{{ f.moins_un_mois|default_if_none:"0" }}</td>
-                    <td class="text-center">{{ f.plus_un_mois|default_if_none:"0" }}</td>
-                    <td class="text-center">{{ f.total|default_if_none:"0" }}</td>
-                    <td class="text-right nowrap">
+                    <td class="text-right montant-urgent nowrap col-montant">
+                        {{ f.montant_moins_une_semaine|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- < 14j -->
+                    <td class="text-center col-nb">{{ f.moins_deux_semaines|default_if_none:"0" }}</td>
+                    <td class="text-right montant nowrap col-montant">
+                        {{ f.montant_moins_deux_semaines|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- < 30j -->
+                    <td class="text-center col-nb">{{ f.moins_un_mois|default_if_none:"0" }}</td>
+                    <td class="text-right montant nowrap col-montant">
+                        {{ f.montant_moins_un_mois|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- > 30j -->
+                    <td class="text-center col-nb">{{ f.plus_un_mois|default_if_none:"0" }}</td>
+                    <td class="text-right montant nowrap col-montant">
+                        {{ f.montant_plus_un_mois|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- Total -->
+                    <td class="text-center col-nb">{{ f.total|default_if_none:"0" }}</td>
+                    <td class="text-right montant nowrap col-montant">
                         {{ f.montant_total|default:"0.00"|floatformat:2 }} MAD
                     </td>
                 </tr>
@@ -87,13 +142,34 @@
             <tfoot>
                 <tr class="total">
                     <td>Total général</td>
-                    <td class="text-center">{{ total_global.factures_en_retard|default_if_none:"0" }}</td>
-                    <td class="text-center">{{ total_global.moins_une_semaine|default_if_none:"0" }}</td>
-                    <td class="text-center">{{ total_global.moins_deux_semaines|default_if_none:"0" }}</td>
-                    <td class="text-center">{{ total_global.moins_un_mois|default_if_none:"0" }}</td>
-                    <td class="text-center">{{ total_global.plus_un_mois|default_if_none:"0" }}</td>
-                    <td class="text-center">{{ total_global.total|default_if_none:"0" }}</td>
-                    <td class="text-right nowrap">
+                    <!-- En retard -->
+                    <td class="text-center col-nb">{{ total_global.factures_en_retard|default_if_none:"0" }}</td>
+                    <td class="text-right montant-retard nowrap col-montant">
+                        {{ total_global.montant_retard|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- < 7j -->
+                    <td class="text-center col-nb">{{ total_global.moins_une_semaine|default_if_none:"0" }}</td>
+                    <td class="text-right montant-urgent nowrap col-montant">
+                        {{ total_global.montant_moins_une_semaine|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- < 14j -->
+                    <td class="text-center col-nb">{{ total_global.moins_deux_semaines|default_if_none:"0" }}</td>
+                    <td class="text-right montant nowrap col-montant">
+                        {{ total_global.montant_moins_deux_semaines|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- < 30j -->
+                    <td class="text-center col-nb">{{ total_global.moins_un_mois|default_if_none:"0" }}</td>
+                    <td class="text-right montant nowrap col-montant">
+                        {{ total_global.montant_moins_un_mois|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- > 30j -->
+                    <td class="text-center col-nb">{{ total_global.plus_un_mois|default_if_none:"0" }}</td>
+                    <td class="text-right montant nowrap col-montant">
+                        {{ total_global.montant_plus_un_mois|default:"0.00"|floatformat:2 }} MAD
+                    </td>
+                    <!-- Total -->
+                    <td class="text-center col-nb">{{ total_global.total|default_if_none:"0" }}</td>
+                    <td class="text-right montant nowrap col-montant">
                         {{ total_global.montant_total|default:"0.00"|floatformat:2 }} MAD
                     </td>
                 </tr>

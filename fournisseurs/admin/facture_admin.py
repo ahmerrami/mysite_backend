@@ -56,6 +56,12 @@ class FournisseurAdminSite(AdminSite):
                     output_field=IntegerField()
                 )
             ),
+            montant_retard=Sum(
+                Case(
+                    When(Q(date_echeance__lt=aujourdhui), then=F('mnt_net_apayer')),
+                    output_field=models.DecimalField()
+                )
+            ),
             moins_une_semaine=Count(
                 Case(
                     When(
@@ -63,6 +69,15 @@ class FournisseurAdminSite(AdminSite):
                         then=1
                     ),
                     output_field=IntegerField()
+                )
+            ),
+            montant_moins_une_semaine=Sum(
+                Case(
+                    When(
+                        Q(date_echeance__gte=aujourdhui) & Q(date_echeance__lte=une_semaine),
+                        then=F('mnt_net_apayer')
+                    ),
+                    output_field=models.DecimalField()
                 )
             ),
             moins_deux_semaines=Count(
@@ -74,6 +89,15 @@ class FournisseurAdminSite(AdminSite):
                     output_field=IntegerField()
                 )
             ),
+            montant_moins_deux_semaines=Sum(
+                Case(
+                    When(
+                        Q(date_echeance__gt=une_semaine) & Q(date_echeance__lte=deux_semaines),
+                        then=F('mnt_net_apayer')
+                    ),
+                    output_field=models.DecimalField()
+                )
+            ),
             moins_un_mois=Count(
                 Case(
                     When(
@@ -83,10 +107,25 @@ class FournisseurAdminSite(AdminSite):
                     output_field=IntegerField()
                 )
             ),
+            montant_moins_un_mois=Sum(
+                Case(
+                    When(
+                        Q(date_echeance__gt=deux_semaines) & Q(date_echeance__lte=un_mois),
+                        then=F('mnt_net_apayer')
+                    ),
+                    output_field=models.DecimalField()
+                )
+            ),
             plus_un_mois=Count(
                 Case(
                     When(Q(date_echeance__gt=un_mois), then=1),
                     output_field=IntegerField()
+                )
+            ),
+            montant_plus_un_mois=Sum(
+                Case(
+                    When(Q(date_echeance__gt=un_mois), then=F('mnt_net_apayer')),
+                    output_field=models.DecimalField()
                 )
             ),
             total=Count('id'),
@@ -112,6 +151,16 @@ class FournisseurAdminSite(AdminSite):
                     output_field=IntegerField()
                 ),
             ),
+            montant_retard=Sum(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__lt=aujourdhui) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=F('factures_beneficiaire__mnt_net_apayer')
+                    ),
+                    output_field=models.DecimalField()
+                )
+            ),
             moins_une_semaine=Count(
                 Case(
                     When(
@@ -121,6 +170,17 @@ class FournisseurAdminSite(AdminSite):
                         then=1
                     ),
                     output_field=IntegerField()
+                )
+            ),
+            montant_moins_une_semaine=Sum(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__gte=aujourdhui) &
+                        Q(factures_beneficiaire__date_echeance__lte=une_semaine) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=F('factures_beneficiaire__mnt_net_apayer')
+                    ),
+                    output_field=models.DecimalField()
                 )
             ),
             moins_deux_semaines=Count(
@@ -134,6 +194,17 @@ class FournisseurAdminSite(AdminSite):
                     output_field=IntegerField()
                 )
             ),
+            montant_moins_deux_semaines=Sum(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__gt=une_semaine) &
+                        Q(factures_beneficiaire__date_echeance__lte=deux_semaines) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=F('factures_beneficiaire__mnt_net_apayer')
+                    ),
+                    output_field=models.DecimalField()
+                )
+            ),
             moins_un_mois=Count(
                 Case(
                     When(
@@ -145,6 +216,17 @@ class FournisseurAdminSite(AdminSite):
                     output_field=IntegerField()
                 )
             ),
+            montant_moins_un_mois=Sum(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__gt=deux_semaines) &
+                        Q(factures_beneficiaire__date_echeance__lte=un_mois) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=F('factures_beneficiaire__mnt_net_apayer')
+                    ),
+                    output_field=models.DecimalField()
+                )
+            ),
             plus_un_mois=Count(
                 Case(
                     When(
@@ -153,6 +235,16 @@ class FournisseurAdminSite(AdminSite):
                         then=1
                     ),
                     output_field=IntegerField()
+                )
+            ),
+            montant_plus_un_mois=Sum(
+                Case(
+                    When(
+                        Q(factures_beneficiaire__date_echeance__gt=un_mois) &
+                        ~Q(factures_beneficiaire__statut='payee'),
+                        then=F('factures_beneficiaire__mnt_net_apayer')
+                    ),
+                    output_field=models.DecimalField()
                 )
             ),
             total=Count(
