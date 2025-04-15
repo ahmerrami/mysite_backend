@@ -4,21 +4,17 @@ from django.contrib.admin import AdminSite
 from django.http import HttpResponse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-
+from django.utils import timezone
 from django.urls import path, reverse
 from django.shortcuts import render
-from django.db import models
-from django.db.models import F
-from django.db.models import Count, Case, When, IntegerField, Sum, Q
 from django import forms
 
 from import_export import resources, fields
 from import_export.admin import ExportMixin
-from django.utils import timezone
-from datetime import timedelta
-from fournisseurs.models.facture_model import Facture, Avoir, Beneficiaire
 
+from fournisseurs.models.facture_model import Facture, Avoir, Beneficiaire
 from fournisseurs.filters import DateRangeFilter
+from .dashboard import tableau_bord_view  # Importez la vue depuis le nouveau fichier
 
 class FournisseurAdminSite(AdminSite):
     site_header = "Administration des Fournisseurs"
@@ -29,254 +25,16 @@ class FournisseurAdminSite(AdminSite):
         urls = super().get_urls()
         custom_urls = [
             path('tableau-bord-fournisseurs/',
-                self.admin_view(self.tableau_bord_view),
+                self.admin_view(tableau_bord_view),
                 name='tableau_bord_fournisseurs'),
             path('', self.admin_view(self.index)),
         ]
         return custom_urls + urls
 
     def index(self, request):
-        return self.tableau_bord_view(request)
+        return tableau_bord_view(request, self)
 
-    def tableau_bord_view(self, request):
-        # Définir les dates de référence
-        aujourdhui = timezone.now().date()
-        une_semaine = aujourdhui + timedelta(days=7)
-        deux_semaines = aujourdhui + timedelta(days=14)
-        un_mois = aujourdhui + timedelta(days=30)
-
-        # Filtrer les factures en instance de paiement (statut différent de 'payee')
-        factures = Facture.objects.exclude(statut='payee')
-
-        # Calculer les totaux globaux
-        total_global = factures.aggregate(
-            factures_en_retard=Count(
-                Case(
-                    When(Q(date_echeance__lt=aujourdhui), then=1),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_retard=Sum(
-                Case(
-                    When(Q(date_echeance__lt=aujourdhui), then=F('mnt_net_apayer')),
-                    output_field=models.DecimalField()
-                )
-            ),
-            moins_une_semaine=Count(
-                Case(
-                    When(
-                        Q(date_echeance__gte=aujourdhui) & Q(date_echeance__lte=une_semaine),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_moins_une_semaine=Sum(
-                Case(
-                    When(
-                        Q(date_echeance__gte=aujourdhui) & Q(date_echeance__lte=une_semaine),
-                        then=F('mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            ),
-            moins_deux_semaines=Count(
-                Case(
-                    When(
-                        Q(date_echeance__gt=une_semaine) & Q(date_echeance__lte=deux_semaines),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_moins_deux_semaines=Sum(
-                Case(
-                    When(
-                        Q(date_echeance__gt=une_semaine) & Q(date_echeance__lte=deux_semaines),
-                        then=F('mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            ),
-            moins_un_mois=Count(
-                Case(
-                    When(
-                        Q(date_echeance__gt=deux_semaines) & Q(date_echeance__lte=un_mois),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_moins_un_mois=Sum(
-                Case(
-                    When(
-                        Q(date_echeance__gt=deux_semaines) & Q(date_echeance__lte=un_mois),
-                        then=F('mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            ),
-            plus_un_mois=Count(
-                Case(
-                    When(Q(date_echeance__gt=un_mois), then=1),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_plus_un_mois=Sum(
-                Case(
-                    When(Q(date_echeance__gt=un_mois), then=F('mnt_net_apayer')),
-                    output_field=models.DecimalField()
-                )
-            ),
-            total=Count('id'),
-            montant_total=Sum(
-                Case(
-                    When(~Q(statut='payee'), then=F('mnt_net_apayer')),
-                    output_field=models.DecimalField()
-                )
-            )
-        )
-
-        # Annoter chaque bénéficiaire avec les comptages par période d'échéance
-        fournisseurs = Beneficiaire.objects.filter(
-            factures_beneficiaire__in=factures
-        ).distinct().annotate(
-            factures_en_retard = Count(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__lt=aujourdhui) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                ),
-            ),
-            montant_retard=Sum(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__lt=aujourdhui) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=F('factures_beneficiaire__mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            ),
-            moins_une_semaine=Count(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__gte=aujourdhui) &
-                        Q(factures_beneficiaire__date_echeance__lte=une_semaine) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_moins_une_semaine=Sum(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__gte=aujourdhui) &
-                        Q(factures_beneficiaire__date_echeance__lte=une_semaine) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=F('factures_beneficiaire__mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            ),
-            moins_deux_semaines=Count(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__gt=une_semaine) &
-                        Q(factures_beneficiaire__date_echeance__lte=deux_semaines) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_moins_deux_semaines=Sum(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__gt=une_semaine) &
-                        Q(factures_beneficiaire__date_echeance__lte=deux_semaines) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=F('factures_beneficiaire__mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            ),
-            moins_un_mois=Count(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__gt=deux_semaines) &
-                        Q(factures_beneficiaire__date_echeance__lte=un_mois) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_moins_un_mois=Sum(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__gt=deux_semaines) &
-                        Q(factures_beneficiaire__date_echeance__lte=un_mois) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=F('factures_beneficiaire__mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            ),
-            plus_un_mois=Count(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__gt=un_mois) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_plus_un_mois=Sum(
-                Case(
-                    When(
-                        Q(factures_beneficiaire__date_echeance__gt=un_mois) &
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=F('factures_beneficiaire__mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            ),
-            total=Count(
-                Case(
-                    When(
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=1
-                    ),
-                    output_field=IntegerField()
-                )
-            ),
-            montant_total=Sum(
-                Case(
-                    When(
-                        ~Q(factures_beneficiaire__statut='payee'),
-                        then=F('factures_beneficiaire__mnt_net_apayer')
-                    ),
-                    output_field=models.DecimalField()
-                )
-            )
-        ).order_by('raison_sociale')
-
-        context = {
-            **self.each_context(request),
-            'fournisseurs': fournisseurs,
-            'total_global': total_global,
-            'aujourdhui': aujourdhui,
-            'title': 'Tableau de bord',
-            'opts': Facture._meta,
-        }
-
-        return render(request, 'admin/fournisseurs/tableau_bord_fournisseurs.html', context)
+# ... (le reste de votre code existant)
 
 
 fournisseur_admin = FournisseurAdminSite(name='fournisseur_admin')
