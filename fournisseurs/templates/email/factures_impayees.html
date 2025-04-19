@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Liste des factures impayées</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Bénéficiaire</th>
+                <th>N° Facture</th>
+                <th>Date Facture</th>
+                <th>Date Échéance</th>
+                <th>Montant Net</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for facture in factures %}
+            <tr>
+                <td>{{ facture.beneficiaire.raison_sociale }}</td>
+                <td>{{ facture.num_facture }}</td>
+                <td>{{ facture.date_facture|date:"d/m/Y" }}</td>
+                <td>{{ facture.date_echeance|date:"d/m/Y" }}</td>
+                <td>{{ facture.mnt_net_apayer }} DH</td>
+                <td>{{ facture.statut }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total">
+                <td colspan="4">Total</td>
+                <td>{{ total }} DH</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>

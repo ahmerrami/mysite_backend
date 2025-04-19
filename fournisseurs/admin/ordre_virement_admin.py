@@ -98,6 +98,7 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
     resource_class = OrdreVirementResource
     list_filter = ('mode_execution', 'valide_pour_signature', 'remis_a_banque')
     readonly_fields = ('created_by','updated_by','montant')
+    search_fields = ('beneficiaire__raison_sociale',)
     list_per_page = 15
     #actions = ['export_ov_as_csv']
     actions = ['generate_ov_pdf_action','export_ov_as_csv']
