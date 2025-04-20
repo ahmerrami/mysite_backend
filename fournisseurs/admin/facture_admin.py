@@ -104,7 +104,7 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
     form = FactureForm
     change_list_template = "admin/fournisseurs/facture/change_list.html"
 
-    fields = ('beneficiaire', 'contrat', 'num_facture', 'type_achat', 'date_facture',
+    fields = ('beneficiaire', 'contrat', 'num_facture', 'nature_achat', 'date_facture',
              'date_echeance', 'montant_ht', 'mnt_tva', 'montant_ttc',
              'mnt_RAS_IS', 'mnt_RAS_TVA', 'mnt_RG', 'mnt_net_apayer',
              'proforma_pdf', 'facture_pdf', 'PV_reception_pdf', 'date_execution',

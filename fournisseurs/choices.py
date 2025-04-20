@@ -52,7 +52,7 @@ STATUT_FAC_CHOICES = [
     ('payee', 'Facture payée'),
 ]
 
-TYPE_ACHAT_CHOICES = [
+NATURE_ACHAT_CHOICES = [
     ('fournitures', 'Fournitures'),
     ('prestations', 'Prestations'),
     ('equip_travaux', 'Equipement et Travaux'),

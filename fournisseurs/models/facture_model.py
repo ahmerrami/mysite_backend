@@ -19,12 +19,12 @@ class BaseFacture(AuditModel):
     """
 
     num_facture = models.CharField(max_length=50, verbose_name="Numéro de facture")
-    type_achat = models.CharField(
+    nature_achat = models.CharField(
         max_length=30,
-        choices=TYPE_ACHAT_CHOICES,
+        choices=NATURE_ACHAT_CHOICES,
         default='prestations',
-        verbose_name="Type achat"
-    ) 
+        verbose_name="Nature achat"
+    )
     date_facture = models.DateField(verbose_name="Date facture")
     date_echeance = models.DateField(verbose_name="Date d'échéance")
 
