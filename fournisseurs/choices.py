@@ -51,3 +51,9 @@ STATUT_FAC_CHOICES = [
     ('banque', 'OV remis à la banque'),
     ('payee', 'Facture payée'),
 ]
+
+TYPE_ACHAT_CHOICES = [
+    ('fournitures', 'Fournitures'),
+    ('prestations', 'Prestations'),
+    ('equip_travaux', 'Equipement et Travaux'),
+]
