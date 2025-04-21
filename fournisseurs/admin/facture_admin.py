@@ -9,6 +9,9 @@ from django.urls import path, reverse
 from django.shortcuts import render
 from django import forms
 
+from django.utils.timezone import now
+from datetime import timedelta, date
+
 from import_export import resources, fields
 from import_export.admin import ExportMixin
 
@@ -158,9 +161,19 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
     export_dlp_selected.short_description = _("Exporter la sélection (Délais Paiement)")
 
     def export_tva_selected(self, request, queryset):
-        return self.process_export(request, FactureResourceTVA(), queryset)
+        # Filtrer ici : factures payées le mois précédent
+        today = timezone.now().date()
+        first_day_this_month = today.replace(day=1)
+        last_day_previous_month = first_day_this_month - timedelta(days=1)
+        first_day_previous_month = last_day_previous_month.replace(day=1)
 
-    export_tva_selected.short_description = _("Exporter la sélection (TVA)")
+        queryset = queryset.filter(
+            ordre_virement__date_remise_banque__range=(first_day_previous_month, last_day_previous_month)
+        )
+
+        return self.process_export(request, FactureResourceTVA(), queryset)
+    
+    export_tva_selected.short_description = _("Exporter la sélection (TVA) - mois précédent")
 
     def process_export(self, request, resource, queryset=None):
         if queryset is None:
