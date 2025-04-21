@@ -86,6 +86,24 @@ class FactureResourceDLP(resources.ModelResource):
                  'echeance_contractuelle', 'date_reglement', 'mnt_net_apayer')
         export_order = fields
 
+class FactureResourceTVA(resources.ModelResource):
+    beneficiaire = fields.Field(attribute='beneficiaire__raison_sociale', column_name='Nom Fournisseur')
+    ice = fields.Field(attribute='beneficiaire__code_ice', column_name='ICE Fournisseur')
+    idf = fields.Field(attribute='beneficiaire__identifiant_fiscale', column_name='IF Fournisseur')
+    date_reglement = fields.Field(attribute='ordre_virement__date_remise_banque', column_name='Date Paiement')
+    num_facture = fields.Field(attribute='num_facture', column_name='N° Facture')
+    date_facture = fields.Field(attribute='date_facture', column_name='Date Facture')
+    nature_achat = fields.Field(attribute='nature_achat', column_name='Désignation des biens et services')
+    montant_ht = fields.Field(attribute='montant_ht', column_name='Montant HT')
+    mnt_tva = fields.Field(attribute='mnt_tva', column_name='Montant TVA')
+    montant_ttc = fields.Field(attribute='montant_ttc', column_name='Montant TTC')
+
+    class Meta:
+        model = Facture
+        fields = ('num_facture', 'date_facture', 'nature_achat', 'beneficiaire', 'idf', 'ice', 'montant_ht',
+                 'mnt_tva', 'montant_ttc', 'date_reglement')
+        export_order = fields
+
 class EcheanceDateFilter(DateRangeFilter):
     date_field = 'date_echeance'  # Champ de la base de données à filtrer
     title = "Echéance"  # Nom qui apparaît dans la sidebar
@@ -124,7 +142,7 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
                       'updated_by', 'ordre_virement', 'date_paiement', 'statut')
     list_per_page = 25
     list_select_related = ('beneficiaire', 'contrat', 'ordre_virement')
-    actions = ["export_std_selected", "export_dlp_selected"]
+    actions = ["export_std_selected", "export_dlp_selected", "export_tva_selected"]
 
     class Media:
         js = ('admin/js/jquery.init.js', 'fournisseurs/js/contrat_filter.js')
@@ -138,6 +156,11 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
         return self.process_export(request, FactureResourceDLP(), queryset)
 
     export_dlp_selected.short_description = _("Exporter la sélection (Délais Paiement)")
+
+    def export_tva_selected(self, request, queryset):
+        return self.process_export(request, FactureResourceTVA(), queryset)
+
+    export_tva_selected.short_description = _("Exporter la sélection (TVA)")
 
     def process_export(self, request, resource, queryset=None):
         if queryset is None:
@@ -155,7 +178,14 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
             content_type = 'text/csv'
             file_extension = 'csv'
 
-        export_type = 'dlp' if isinstance(resource, FactureResourceDLP) else 'std'
+        #export_type = 'dlp' if isinstance(resource, FactureResourceDLP) else 'std'
+        if isinstance(resource, FactureResourceDLP):
+            export_type = 'dlp'
+        elif isinstance(resource, FactureResourceTVA):
+            export_type = 'tva'
+        else:
+            export_type = 'std'
+
         response = HttpResponse(export_data, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="export_{export_type}_{timezone.now().date()}.{file_extension}"'
         return response
