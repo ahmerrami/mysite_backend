@@ -97,7 +97,7 @@ class Facture(BaseFacture):
         null=True,
         blank=True
     )
-    montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT", validators=[MinValueValidator(0.01)])
+    montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT")#, validators=[MinValueValidator(0.01)])
     proforma_pdf = models.FileField(
         upload_to='proformas/',
         verbose_name="Proforma PDF",
