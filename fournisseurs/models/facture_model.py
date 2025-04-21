@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import UniqueConstraint
 from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 from .audit_model import AuditModel
 from .beneficiaire_model import Beneficiaire
@@ -163,7 +164,13 @@ class Facture(BaseFacture):
                 self.mnt_RAS_TVA = 0
             self.mnt_RAS_IS = self.montant_ht * (self.contrat.taux_RAS_IS / 100)
             self.mnt_RG = self.montant_ttc * (self.contrat.taux_RG / 100)
-            self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
+            #self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
+
+            self.mnt_net_apayer = Decimal(self.montant_ttc) - (
+                Decimal(self.mnt_RAS_TVA or 0) +
+                Decimal(self.mnt_RAS_IS or 0) +
+                Decimal(self.mnt_RG or 0)
+            )
         else:
             self.montant_ttc = self.montant_ht + self.mnt_tva
             self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)

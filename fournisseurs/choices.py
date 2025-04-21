@@ -53,7 +53,8 @@ STATUT_FAC_CHOICES = [
 ]
 
 NATURE_ACHAT_CHOICES = [
-    ('fournitures', 'Fournitures'),
-    ('prestations', 'Prestations'),
-    ('equip_travaux', 'Equipement et Travaux'),
+    ('prestations', 'Achat de services'),
+    ('travaux', 'Achat de travaux'),
+    ('equipement', 'Achat de biens d\'équipement'),
+    ('fournitures', 'Achat de fournitures'),
 ]

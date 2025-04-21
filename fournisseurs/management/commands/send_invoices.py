@@ -1,3 +1,11 @@
+# fournisseurs/management/commands/send_invoices.py
+
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.prod")
+django.setup()
+
 from django.core.management.base import BaseCommand
 from fournisseurs.models.facture_model import Facture
 from django.core.mail import EmailMessage
@@ -9,8 +17,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Récupérer les factures non payées avec les relations nécessaires
-        factures = Facture.objects.exclude(statut='payee').select_related('beneficiaire')
-        
+        factures = Facture.objects.exclude(statut='payee').select_related('beneficiaire').order_by('date_echeance')
+
         # Préparer les données pour le template
         context = {
             'factures': factures,
@@ -26,7 +34,7 @@ class Command(BaseCommand):
             subject="Liste des factures impayées",
             body=html_message,
             from_email='supratourstravel2009@gmail.com',
-            to=['ahmederrami@gmail.com'],
+            to=['a.errami@supratourstravel.com','m.choukri@supratourstravel.com','d.naitcheikh@supratourstravel.com','c.laabad@supratourstravel.com','m.lakhmili@supratourstravel.com'],
         )
         email.content_subtype = "html"  # Important pour le HTML
         email.send()
