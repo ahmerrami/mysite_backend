@@ -132,14 +132,13 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
              'ordre_virement', 'statut')
 
     list_display = ('num_facture', 'beneficiaire', 'contrat', 'montant_ttc',
-                   'mnt_net_apayer', 'date_echeance', 'ordre_virement')
+                   'mnt_net_apayer', 'date_echeance', 'statut')
 
     search_fields = ('contrat__numero_contrat', 'num_facture', 'beneficiaire__raison_sociale')
     #list_filter = ('statut', 'date_echeance', 'beneficiaire')
     list_filter = (
         EcheanceDateFilter,
-        'statut',
-        'beneficiaire'
+        'statut'
     )
     readonly_fields = ('montant_ttc', 'mnt_net_apayer', 'created_by',
                       'updated_by', 'ordre_virement', 'date_paiement', 'statut')
