@@ -2,6 +2,7 @@
 
 import os
 import django
+from datetime import datetime
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.prod")
 django.setup()
@@ -16,6 +17,12 @@ class Command(BaseCommand):
     help = "Envoie les factures par email selon un critère."
 
     def handle(self, *args, **options):
+        # Vérifier si nous sommes un jour de week-end (samedi=5, dimanche=6)
+        today = datetime.today().weekday()
+        if today >= 5:  # 5=samedi, 6=dimanche
+            self.stdout.write(self.style.NOTICE("Pas d'envoi des factures le week-end (samedi/dimanche)"))
+            return
+
         # Récupérer les factures non payées avec les relations nécessaires
         factures = Facture.objects.exclude(statut='payee').select_related('beneficiaire').order_by('date_echeance')
 
