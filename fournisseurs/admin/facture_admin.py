@@ -10,7 +10,8 @@ from django.shortcuts import render
 from django import forms
 
 from django.utils.timezone import now
-from datetime import timedelta, date
+from datetime import timedelta, datetime,date
+from dateutil.relativedelta import relativedelta
 
 from import_export import resources, fields
 from import_export.admin import ExportMixin
@@ -72,21 +73,175 @@ class FactureResourceSTD(resources.ModelResource):
                  'mnt_RG', 'mnt_net_apayer', 'ordre_virement', 'statut')
         export_order = fields
 
-
 class FactureResourceDLP(resources.ModelResource):
+    # Champs de base
     beneficiaire = fields.Field(attribute='beneficiaire__raison_sociale', column_name='Fournisseur')
     contrat = fields.Field(attribute='contrat__numero_contrat', column_name='Contrat')
     moe = fields.Field(attribute='contrat__moe', column_name='MOE')
     ice = fields.Field(attribute='beneficiaire__code_ice', column_name='ICE')
     rc = fields.Field(attribute='beneficiaire__registre_commerce', column_name='RC')
-    echeance_contractuelle = fields.Field(attribute='contrat__mode_paiement', column_name='Echeance contractuelle')
+    echeance_contractuelle = fields.Field(attribute='contrat__mode_paiement', column_name='Echéance contractuelle')
     date_reglement = fields.Field(attribute='ordre_virement__date_remise_banque', column_name='Date règlement')
+    
+    # Champs calculés
+    date_echeance = fields.Field(column_name='Date échéance théorique')
+    jours_retard = fields.Field(column_name='Jours de retard (réglé)')
+    jours_retard_non_regle = fields.Field(column_name='Jours de retard (non réglé)')
+    a_selectionner = fields.Field(column_name='A sélectionner')
+
+    def calculate_echeance(self, date_execution, echeance_contractuelle):
+        """Calcule la date d'échéance selon le mode de paiement"""
+        if not date_execution or not echeance_contractuelle:
+            return None
+            
+        mode = echeance_contractuelle.upper()
+        
+        delais = {
+            '15J': 15, '30J': 30, '60J': 60, 
+            '90J': 90, '120J': 120
+        }
+        
+        if mode in delais:
+            return date_execution + relativedelta(days=delais[mode])
+        
+        if mode.endswith('JFDM'):
+            base_delai = mode.replace('JFDM', 'J')
+            if base_delai in delais:
+                date_plus_delai = date_execution + relativedelta(days=delais[base_delai])
+                return date_plus_delai + relativedelta(day=31)
+            
+        return None
+
+    def get_trimestre_precedent(self):
+        """Retourne les dates de début et fin du trimestre précédent"""
+        today = date.today()
+        mois_en_cours = today.month
+        trimestre_en_cours = (mois_en_cours - 1) // 3 + 1
+        
+        # Calcul du trimestre précédent
+        if trimestre_en_cours == 1:
+            trimestre_precedent = 4
+            annee = today.year - 1
+        else:
+            trimestre_precedent = trimestre_en_cours - 1
+            annee = today.year
+        
+        # Détermination des mois du trimestre précédent
+        premier_mois_trimestre = (trimestre_precedent - 1) * 3 + 1
+        dernier_mois_trimestre = premier_mois_trimestre + 2
+        
+        debut_trimestre = date(annee, premier_mois_trimestre, 1)
+        fin_trimestre = date(annee, dernier_mois_trimestre, 1) + relativedelta(day=31)
+        
+        return debut_trimestre, fin_trimestre
+
+    def is_in_trimestre_precedent(self, date_a_verifier):
+        """Vérifie si une date se situe dans le trimestre précédent"""
+        if not date_a_verifier:
+            return False
+            
+        debut_trimestre, fin_trimestre = self.get_trimestre_precedent()
+        return debut_trimestre <= date_a_verifier <= fin_trimestre
+
+    def calculate_retard(self, date_reference, date_echeance):
+        """Calcule le nombre de jours de retard"""
+        if not date_reference or not date_echeance:
+            return None
+        delta = (date_reference - date_echeance).days
+        return max(delta, 0)
+
+    def dehydrate_date_echeance(self, facture):
+        """Formatte la date d'échéance théorique"""
+        try:
+            date_exec = facture.date_execution
+            echeance_contract = facture.contrat.mode_paiement if facture.contrat else '60J'
+            
+            date_echeance = self.calculate_echeance(date_exec, echeance_contract)
+            return date_echeance.strftime('%d/%m/%Y') if date_echeance else "NA"
+        except:
+            return "Erreur"
+
+    def dehydrate_jours_retard(self, facture):
+        """Calcule le retard pour les factures réglées"""
+        try:
+            if not facture.ordre_virement or not facture.ordre_virement.date_remise_banque:
+                return "FNReglée"
+            
+            date_echeance = self.calculate_echeance(
+                facture.date_execution,
+                facture.contrat.mode_paiement if facture.contrat else '60J'
+            )
+            
+            if not date_echeance:
+                return "Echéance invalide"
+            
+            debut_trimestre, fin_trimestre = self.get_trimestre_precedent()
+            date_reglement = facture.ordre_virement.date_remise_banque
+            
+            # Règlement non effectué ou effectué après la fin du trimestre précédent
+            if date_reglement > fin_trimestre:
+                date_reference = fin_trimestre
+            else:
+                # Règlement effectué durant le trimestre précédent
+                if date_echeance >= debut_trimestre and date_echeance <= fin_trimestre:
+                    date_reference = date_reglement
+                else:
+                    date_reference = debut_trimestre
+            
+            retard = self.calculate_retard(date_reference, date_echeance)
+            return str(retard) if retard is not None else "NA"
+        except:
+            return "Erreur"
+
+    def dehydrate_jours_retard_non_regle(self, facture):
+        """Calcule le retard pour les factures non réglées"""
+        try:
+            if facture.ordre_virement and facture.ordre_virement.date_remise_banque:
+                return "FReglée"
+            
+            date_echeance = self.calculate_echeance(
+                facture.date_execution,
+                facture.contrat.mode_paiement if facture.contrat else '60J'
+            )
+            
+            if not date_echeance:
+                return "Echéance invalide"
+            
+            _, fin_trimestre = self.get_trimestre_precedent()
+            retard = self.calculate_retard(fin_trimestre, date_echeance)
+            
+            return str(retard)
+        except:
+            return "Erreur"
+
+    def dehydrate_a_selectionner(self, facture):
+        """Détermine si la facture doit être sélectionnée (1) ou non (0)"""
+        try:
+            debut_trimestre, fin_trimestre = self.get_trimestre_precedent()
+            
+            # Vérifie la date de réalisation
+            date_realisation = facture.date_execution
+            if date_realisation and debut_trimestre <= date_realisation <= fin_trimestre:
+                return "1"
+            
+            # Vérifie la date de règlement
+            if facture.ordre_virement and facture.ordre_virement.date_remise_banque:
+                date_reglement = facture.ordre_virement.date_remise_banque
+                if debut_trimestre <= date_reglement <= fin_trimestre:
+                    return "1"
+            
+            return "0"
+        except:
+            return "Erreur"
 
     class Meta:
         model = Facture
-        fields = ('moe', 'contrat', 'date_facture', 'num_facture', 'montant_ht',
-                 'montant_ttc', 'beneficiaire', 'ice', 'rc', 'date_execution',
-                 'echeance_contractuelle', 'date_reglement', 'mnt_net_apayer')
+        fields = (
+            'moe', 'contrat', 'date_facture', 'num_facture', 'montant_ht',
+            'montant_ttc', 'beneficiaire', 'ice', 'rc', 'date_execution',
+            'echeance_contractuelle', 'date_reglement', 'mnt_net_apayer',
+            'date_echeance', 'jours_retard', 'jours_retard_non_regle', 'a_selectionner'
+        )
         export_order = fields
 
 class FactureResourceTVA(resources.ModelResource):
