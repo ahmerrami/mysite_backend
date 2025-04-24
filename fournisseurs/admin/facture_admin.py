@@ -232,6 +232,12 @@ class FactureResourceDLP(resources.ModelResource):
                 if debut_trimestre <= date_reglement <= fin_trimestre:
                     return "1"
             
+            # Recalcule la date d'échéance
+            echeance_contract = facture.contrat.mode_paiement if facture.contrat else '60J'
+            date_echeance_calculee = self.calculate_echeance(date_realisation, echeance_contract)
+            if date_echeance_calculee and debut_trimestre <= date_echeance_calculee <= fin_trimestre:
+                return "1"
+            
             return "0"
         except:
             return "Erreur"
