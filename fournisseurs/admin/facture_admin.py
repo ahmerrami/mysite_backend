@@ -113,7 +113,7 @@ class FactureResourceDLP(resources.ModelResource):
         return None
 
     def get_trimestre_precedent(self):
-        """Retourne les dates de début et fin du trimestre précédent"""
+        """Retourne les dates de début et fin du trimestre précédent de manière plus fiable"""
         today = date.today()
         mois_en_cours = today.month
         trimestre_en_cours = (mois_en_cours - 1) // 3 + 1
@@ -128,10 +128,12 @@ class FactureResourceDLP(resources.ModelResource):
         
         # Détermination des mois du trimestre précédent
         premier_mois_trimestre = (trimestre_precedent - 1) * 3 + 1
+        
+        # Calcul plus robuste de la fin du trimestre
         dernier_mois_trimestre = premier_mois_trimestre + 2
+        fin_trimestre = date(annee, dernier_mois_trimestre, 1) + relativedelta(months=1, days=-1)
         
         debut_trimestre = date(annee, premier_mois_trimestre, 1)
-        fin_trimestre = date(annee, dernier_mois_trimestre, 1) + relativedelta(day=31)
         
         return debut_trimestre, fin_trimestre
 
