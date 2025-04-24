@@ -200,8 +200,11 @@ class Facture(BaseFacture):
         # Vérifie que le contrat sélectionné appartient bien au bénéficiaire.
         if self.contrat and self.beneficiaire and self.contrat.beneficiaire != self.beneficiaire:
             raise ValidationError("Le contrat sélectionné ne correspond pas au bénéficiaire de la facture.")
-
-        if self.date_execution and self.date_facture and self.date_execution > self.date_facture:
+        
+        if not self.date_execution:
+            raise ValidationError("La date exécution est obligatoire.")
+        
+        if self.date_execution and self.date_facture and not self.proforma_pdf and self.date_execution > self.date_facture:
             raise ValidationError("La date facture doit être postérieure à la date réception.")
 
         #self.valider_modifications_si_virement_encours()
