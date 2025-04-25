@@ -375,6 +375,18 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
 
     lien_tableau_bord.short_description = "Tableau de bord"
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        
+        # Ne pas filtrer pour l'ajout d'une nouvelle facture
+        if request.path.endswith('/add/') or not request.user.groups.filter(name="auditeurs").exists():
+            return queryset
+        
+        # Sinon, appliquer le filtre pour les auditeurs
+        date_debut = datetime(2025, 1, 1)
+        date_fin = datetime(2025, 3, 31)
+        return queryset.filter(date_execution__range=[date_debut, date_fin])
+
 #@admin.register(Avoir)
 @admin.register(Avoir, site=fournisseur_admin)
 class AvoirAdmin(admin.ModelAdmin):
