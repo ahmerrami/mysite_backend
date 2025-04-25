@@ -207,7 +207,7 @@ class Facture(BaseFacture):
         if self.date_execution and self.date_facture and not self.proforma_pdf and self.date_execution > self.date_facture:
             raise ValidationError("La date facture doit être postérieure à la date réception.")
 
-        #self.valider_modifications_si_virement_encours()
+        self.valider_modifications_si_virement_encours()
 
     def valider_modifications_si_virement_encours(self):
         if self.pk:
