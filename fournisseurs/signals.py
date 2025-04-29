@@ -3,10 +3,18 @@ from django.db import transaction
 from django.db.models import Sum
 from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
 from django.dispatch import receiver
+
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.dispatch import receiver
+
+from decouple import config
+
 import os
 from .models import Facture, OrdreVirement
 from .choices import *  # Importer toutes les constantes
 
+User = get_user_model()
 
 def update_ordre_virement_montant(ordre_virement):
     """
@@ -156,9 +164,35 @@ def update_ordre_virement_on_save(sender, instance, **kwargs):
         update_ordre_virement_montant(instance.ordre_virement)
 
 @receiver(pre_delete, sender=Facture)
-def update_ordre_virement_on_delete(sender, instance, **kwargs):
+def notify_users_and_update_ordre_virement(sender, instance, **kwargs):
     """
-    Met à jour le montant de l'ordre de virement avant qu'une facture soit supprimée.
+    1. Met à jour le montant de l'ordre de virement avant suppression
+    2. Notifie les utilisateurs created_by et updated_by de la suppression
     """
+    # 1. Mise à jour de l'ordre de virement
     if instance.ordre_virement:
         update_ordre_virement_montant(instance.ordre_virement)
+    
+    # 2. Notification des utilisateurs
+    subject = f"Suppression de la facture {instance.num_facture} !!! "
+    message = f"La facture {instance.num_facture} dont ci-après détail a été supprimée du système :\n Bénéficiaire : {instance.beneficiaire.raison_sociale}\n Montant TTC : {instance.montant_ttc}\n Echéance : {instance.date_echeance}\n Statut : {instance.statut}"
+    
+    recipients = set()
+    
+    # Ajouter created_by s'il existe
+    if instance.created_by:
+        recipients.add(instance.created_by.email)
+    
+    # Ajouter updated_by s'il existe et est différent
+    if instance.updated_by and instance.updated_by != instance.created_by:
+        recipients.add(instance.updated_by.email)
+    
+    # Envoyer le mail seulement s'il y a des destinataires
+    if recipients:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=config('AUTHEMAIL_EMAIL_HOST_USER'),  # Utilisez DEFAULT_FROM_EMAIL des paramètres
+            recipient_list=list(recipients),
+            fail_silently=True,
+        )
