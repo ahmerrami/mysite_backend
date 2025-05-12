@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
 
-ALLOWED_IPS = config('ALLOWED_IPS', default='').split(',')
+BLOCKED_IPS = config('BLOCKED_IPS', default='').split(',')
 
 # Application definition
 
@@ -72,7 +72,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'fournisseurs.middleware.CurrentUserMiddleware',
-    'fournisseurs.middleware.RestrictIPMiddleware',
+    'fournisseurs.middleware.BlockIPMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
