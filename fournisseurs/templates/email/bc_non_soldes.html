@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Liste des bons de commande non soldés</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .total {
+            font-weight: bold;
+            background-color: #e7f3e7;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .progress-bar {
+            height: 20px;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .negative {
+            color: #d9534f;
+            font-weight: bold;
+        }
+        .positive {
+            color: #5cb85c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Liste des bons de commande non soldés</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Numéro Contrat</th>
+                <th>Libellé</th>
+                <th>Bénéficiaire</th>
+                <th class="text-right">Montant Contrat (HT)</th>
+                <th class="text-right">Montant Facturé (HT)</th>
+                <th class="text-right">Reste à Facturer (HT)</th>
+                <th>Avancement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contrat in contrats %}
+            <tr>
+                <td>{{ contrat.numero_contrat }}</td>
+                <td>{{ contrat.objet|truncatechars:50 }}</td>
+                <td>{{ contrat.beneficiaire }}</td>
+                <td class="text-right">{{ contrat.montant_HT|floatformat:2 }} DH</td>
+                <td class="text-right">{{ contrat.total_facture|floatformat:2 }} DH</td>
+                <td class="text-right {% if contrat.reste_a_facturer > 0 %}positive{% else %}negative{% endif %}">
+                    {{ contrat.reste_a_facturer|floatformat:2 }} DH
+                </td>
+                <td>
+                    {% if contrat.montant_HT > 0 %}
+                        {% widthratio contrat.total_facture contrat.montant_HT 100 as percentage %}
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: {{ percentage }}%">
+                                {% if percentage > 30 %}{{ percentage }}%{% endif %}
+                            </div>
+                        </div>
+                        {% if percentage <= 30 %}<span>{{ percentage }}%</span>{% endif %}
+                    {% else %}
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: 0%">0%</div>
+                        </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">Aucun bon de commande non soldé trouvé</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total">
+                <td colspan="3">TOTAL</td>
+                <td class="text-right">{{ total_contrats|floatformat:2 }} DH</td>
+                <td class="text-right">{{ total_factures|floatformat:2 }} DH</td>
+                <td class="text-right {% if total_reste > 0 %}positive{% else %}negative{% endif %}">
+                    {{ total_reste|floatformat:2 }} DH
+                </td>
+                <td class="text-right">
+                    {% if total_contrats > 0 %}
+                        {% widthratio total_factures total_contrats 100 %}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div style="margin-top: 30px; font-size: 0.9em; color: #666;">
+        <p>Date de génération : {% now "j F Y H:i" %}</p>
+        <p>Nombre de contrats : {{ contrats|length }}</p>
+    </div>
+</body>
+</html>

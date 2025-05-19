@@ -38,7 +38,7 @@ class Command(BaseCommand):
 
         # Envoyer l'email
         email = EmailMessage(
-            subject="Liste des factures impayées",
+            subject="Suivi quotidien des factures impayées",
             body=html_message,
             from_email='supratourstravel2009@gmail.com',
             to=['a.errami@supratourstravel.com','m.choukri@supratourstravel.com','d.naitcheikh@supratourstravel.com','c.laabad@supratourstravel.com','m.lakhmili@supratourstravel.com'],

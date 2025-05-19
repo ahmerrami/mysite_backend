@@ -2,7 +2,7 @@
 from .base import *
 
 # Security
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
@@ -30,5 +30,5 @@ DATABASES = {
 }
 
 # Configuration spécifique à la production
-MEDIA_ROOT = '/home/errami/mysite/media'  # Chemin absolu comme vous aviez
-STATIC_ROOT = '/home/errami/mysite/static'
+MEDIA_ROOT = '/home/supratourstravel/mysite/media'  # Chemin absolu comme vous aviez
+STATIC_ROOT = '/home/supratourstravel/mysite/static'
