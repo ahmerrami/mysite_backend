@@ -17,10 +17,10 @@ class Command(BaseCommand):
     help = "Envoie un rapport des bons de commande non soldés par email."
 
     def handle(self, *args, **options):
-        # Ne pas envoyer durant le week-end
+        # Envoyer une seule fois par semaine
         today = datetime.today().weekday()
         if today != 2:
-            self.stdout.write(self.style.NOTICE("Pas d'envoi si pas un lundi"))
+            self.stdout.write(self.style.NOTICE("Pas d'envoi si pas un mercredi"))
             return
 
         # Récupération des contrats de type "bon de commande"

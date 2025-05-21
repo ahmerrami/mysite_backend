@@ -20,7 +20,7 @@ class StageResource(resources.ModelResource):
 
     class Meta:
         model = Stage
-        fields = ('civilite', 'nom', 'prenom', 'cin', 'dateN', 'tel', 'email', 'adress', 'ville', 'niveau', 'ecole', 'specialite', 'villeEcole', 'selectedPeriode', 'created_at', 'cv', 'lettre', 'isChecked', 'traite', 'commentaire')
+        fields = ('civilite', 'nom', 'prenom', 'cin', 'dateN', 'tel', 'email', 'adress', 'ville', 'niveau', 'ecole', 'specialite', 'villeEcole', 'encore_scolarise', 'selectedPeriode', 'created_at', 'cv', 'lettre', 'isChecked', 'traite', 'commentaire')
         export_order = fields
 
 def send_mass_email(modeladmin, request, queryset):
@@ -60,19 +60,23 @@ class StageAdmin(ImportExportModelAdmin):
     resource_class = StageResource
     list_display = ('nom', 'tel', 'niveau', 'specialite', 'ville', 'villeEcole', 'selectedPeriode', 'created_at', 'cv', 'lettre', 'traite', 'commentaire')
     list_editable = ('ville', 'villeEcole', 'selectedPeriode')
-    list_filter = ('traite', 'ville', 'selectedPeriode', 'created_at')
+    list_filter = ('traite', 'ville', 'selectedPeriode', 'created_at', 'encore_scolarise')
     list_per_page = 50
     actions = [send_mass_email]  # Ajoutez l'action ici
 
     # Define all fields
-    all_fields = ['civilite', 'nom', 'prenom', 'cin', 'dateN', 'tel', 'email', 'adress', 'ville', 'niveau', 'ecole', 'specialite', 'villeEcole', 'selectedPeriode', 'created_at', 'cv', 'lettre', 'isChecked', 'traite', 'commentaire']
+    all_fields = ['civilite', 'nom', 'prenom', 'cin', 'dateN', 'tel', 'email', 'adress', 'ville', 'niveau', 'ecole', 'specialite', 'villeEcole', 'encore_scolarise', 'selectedPeriode', 'created_at', 'cv', 'lettre', 'isChecked', 'traite', 'commentaire']
 
     def get_readonly_fields(self, request, obj=None):
+        # If user is admin/superuser, no readonly fields
+        if request.user.is_superuser:
+            return []
+
         # Check if the user is in the 'stages' group
         if request.user.groups.filter(name='stages').exists():
             return [field for field in self.all_fields if field not in ['traite', 'commentaire']]
         else:
-            return self.all_fields
+            return self.readonly_fields
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

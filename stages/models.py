@@ -25,7 +25,7 @@ class Periode(models.Model):
 def rename_upload_path(instance, filename, prefix):
     ext = filename.split('.')[-1]
     new_filename = f"{instance.cin}_{instance.nom}_{prefix}.{ext}"
-    return os.path.join('uploads/stages/', new_filename)
+    return os.path.join('stages/', new_filename)
 
 def rename_upload_path_cv(instance, filename):
     return rename_upload_path(instance, filename, 'cv')
@@ -47,6 +47,11 @@ class Stage(models.Model):
     ecole = models.CharField(max_length=50)
     specialite = models.CharField(max_length=50)
     villeEcole = models.ForeignKey(Ville, on_delete=models.CASCADE, related_name="ville_ecole")
+    encore_scolarise = models.BooleanField(
+        default=False,
+        verbose_name="Êtes-vous encore scolarisé(e) ?",
+        help_text="Cochez cette case si vous êtes actuellement inscrit dans un établissement d'enseignement"
+    )
     selectedPeriode = models.ForeignKey(Periode, on_delete=models.CASCADE, related_name="stages")
     cv = models.FileField(upload_to=rename_upload_path_cv, validators=[validate_file_extension])
     lettre = models.FileField(upload_to=rename_upload_path_lettre, validators=[validate_file_extension])
