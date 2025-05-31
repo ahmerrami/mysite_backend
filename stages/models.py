@@ -84,7 +84,7 @@ def envoyer_email_nouvel_enregistrement(sender, instance, created, **kwargs):
         )
         destinataires = [instance.email]
         cc_destinataires = []  # Add actual CC recipients if needed
-        cci_destinataires = ['ahmederrami@gmail.com']
+        cci_destinataires = ['ahmederrami@gmail.com','anaddamsupratravel@gmail.com']
 
         email = EmailMessage(
             sujet,

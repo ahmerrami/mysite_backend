@@ -17,6 +17,7 @@ class PeriodeWidget(Widget):
 class StageResource(resources.ModelResource):
     ville = fields.Field(attribute='ville__ville', column_name='Ville')
     villeEcole = fields.Field(attribute='villeEcole__ville', column_name='VilleEcole')
+    selectedPeriode = fields.Field(attribute='selectedPeriode__periode', column_name='selectedPeriode')
 
     class Meta:
         model = Stage
