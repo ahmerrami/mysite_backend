@@ -128,7 +128,7 @@ class Facture(BaseFacture):
             FileExtensionValidator(allowed_extensions=['pdf']),
         ]
     )
-    date_execution = models.DateField(verbose_name="Date d'exécution ou de réception",
+    date_execution = models.DateField(verbose_name="Date de base de calcul de l'échéance",
         null=True,
         blank=True
     )
@@ -200,10 +200,10 @@ class Facture(BaseFacture):
         # Vérifie que le contrat sélectionné appartient bien au bénéficiaire.
         if self.contrat and self.beneficiaire and self.contrat.beneficiaire != self.beneficiaire:
             raise ValidationError("Le contrat sélectionné ne correspond pas au bénéficiaire de la facture.")
-        
+
         if not self.date_execution:
             raise ValidationError("La date exécution est obligatoire.")
-        
+
         if self.date_execution and self.date_facture and not self.proforma_pdf and self.date_execution > self.date_facture:
             raise ValidationError("La date facture doit être postérieure à la date réception.")
 
