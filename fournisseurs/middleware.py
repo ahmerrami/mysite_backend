@@ -17,9 +17,6 @@ class CurrentUserMiddleware:
     @staticmethod
     def get_current_user():
         return getattr(CurrentUserMiddleware._user, "value", None)
-    
-from django.conf import settings
-from django.http import HttpResponseForbidden
 
 class BlockIPMiddleware:
     def __init__(self, get_response):
@@ -29,11 +26,11 @@ class BlockIPMiddleware:
 
     def __call__(self, request):
         client_ip = self.get_client_ip(request)
-        
+
         # Si l'IP est dans la liste noire, bloquer l'accès
         if client_ip in self.blocked_ips:
             return HttpResponseForbidden("Accès refusé : votre adresse IP est bloquée.")
-        
+
         return self.get_response(request)
 
     def get_client_ip(self, request):
@@ -46,4 +43,3 @@ class BlockIPMiddleware:
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
-
