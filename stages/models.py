@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save, post_delete
 from .validators import validate_file_extension
 import os
+from decouple import config
 
 # Models
 
@@ -84,12 +85,12 @@ def envoyer_email_nouvel_enregistrement(sender, instance, created, **kwargs):
         )
         destinataires = [instance.email]
         cc_destinataires = []  # Add actual CC recipients if needed
-        cci_destinataires = ['ahmederrami@gmail.com','anaddamsupratravel@gmail.com']
+        cci_destinataires = config('CCI_DESTINATAIRES_STAGES', default='').split(',')
 
         email = EmailMessage(
             sujet,
             message,
-            'supratourstravel2009@gmail.com',
+            config('AUTHEMAIL_EMAIL_HOST_USER'),
             to=destinataires,
             cc=cc_destinataires,
             bcc=cci_destinataires

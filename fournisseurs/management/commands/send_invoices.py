@@ -12,6 +12,7 @@ from fournisseurs.models.facture_model import Facture
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from decouple import config
 
 class Command(BaseCommand):
     help = "Envoie les factures par email selon un critère."
@@ -40,8 +41,8 @@ class Command(BaseCommand):
         email = EmailMessage(
             subject="Suivi quotidien des factures impayées",
             body=html_message,
-            from_email='supratourstravel2009@gmail.com',
-            to=['a.errami@supratourstravel.com','m.choukri@supratourstravel.com','d.naitcheikh@supratourstravel.com','c.laabad@supratourstravel.com','m.lakhmili@supratourstravel.com','ranimizahra90@gmail.com'],
+            from_email=config('AUTHEMAIL_EMAIL_HOST_USER'),
+            to = config('TO_DESTINATAIRES_FACTURES', default='').split(',')
         )
         email.content_subtype = "html"  # Important pour le HTML
         email.send()

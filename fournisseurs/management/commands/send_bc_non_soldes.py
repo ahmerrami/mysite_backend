@@ -12,6 +12,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from fournisseurs.models.contrat_model import Contrat
+from decouple import config
 
 class Command(BaseCommand):
     help = "Envoie un rapport des bons de commande non soldés par email."
@@ -70,11 +71,8 @@ class Command(BaseCommand):
         email = EmailMessage(
             subject="Suivi hebdomadaire des bons de commande non soldés",
             body=html_message,
-            from_email='supratourstravel2009@gmail.com',
-            to=[
-                'c.laabad@supratourstravel.com',
-                'a.errami@supratourstravel.com'
-            ],
+            from_email=config('AUTHEMAIL_EMAIL_HOST_USER'),
+            to = config('TO_DESTINATAIRES_BC', default='').split(',')
         )
         email.content_subtype = "html"
         email.send()

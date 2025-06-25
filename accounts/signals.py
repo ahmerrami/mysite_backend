@@ -24,7 +24,7 @@ def send_random_password(sender, instance, created, **kwargs):
         )
         destinataires = [instance.email]
         cc_destinataires = []  # Add actual CC recipients if needed
-        cci_destinataires = ['ahmederrami@gmail.com']
+        cci_destinataires = []
 
         email = EmailMessage(
             sujet,
