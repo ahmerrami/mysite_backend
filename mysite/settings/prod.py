@@ -2,8 +2,8 @@
 from .base import *
 
 # Security
-DEBUG = True
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+DEBUG = False
+ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True

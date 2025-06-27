@@ -5,7 +5,7 @@ from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['supratourstravel.pythonanywhere.com']
 
 # Configuration SQLite (sans dépendance externe)
 DATABASES = {
