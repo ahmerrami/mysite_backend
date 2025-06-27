@@ -34,6 +34,8 @@ class BaseFacture(AuditModel):
     mnt_RAS_TVA = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS TVA", default=0.00)
     mnt_RAS_IS = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS IS", default=0.00)
     mnt_RG = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RG", default=0.00)
+    mnt_avoir = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant Avoir", default=0.00)
+    mnt_penalite = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant Pénalité", default=0.00)
     mnt_net_apayer = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant net à payer", default=0.00)
 
     date_paiement = models.DateField(verbose_name="Date paiement",
@@ -118,6 +120,16 @@ class Facture(BaseFacture):
             FileExtensionValidator(allowed_extensions=['pdf']),
         ]
     )
+    avoir_pdf = models.FileField(
+        upload_to='avoirs/',
+        verbose_name="Avoir PDF",
+        help_text="Fichier PDF de l'avoir",
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['pdf']),
+        ]
+    )
     PV_reception_pdf = models.FileField(
         upload_to='receptions/',
         verbose_name="Reception PDF",
@@ -169,11 +181,13 @@ class Facture(BaseFacture):
             self.mnt_net_apayer = Decimal(self.montant_ttc) - (
                 Decimal(self.mnt_RAS_TVA or 0) +
                 Decimal(self.mnt_RAS_IS or 0) +
-                Decimal(self.mnt_RG or 0)
+                Decimal(self.mnt_RG or 0) +
+                Decimal(self.mnt_avoir or 0) +
+                Decimal(self.mnt_penalite or 0)
             )
         else:
             self.montant_ttc = self.montant_ht + self.mnt_tva
-            self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
+            self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG + self.mnt_avoir + self.mnt_penalite)
 
     def clean(self):
         """

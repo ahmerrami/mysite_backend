@@ -70,7 +70,7 @@ class FactureResourceSTD(resources.ModelResource):
         model = Facture
         fields = ('beneficiaire', 'contrat', 'moe', 'num_facture', 'date_facture',
                  'date_echeance', 'montant_ttc', 'mnt_RAS_IS', 'mnt_RAS_TVA',
-                 'mnt_RG', 'mnt_net_apayer', 'ordre_virement', 'statut')
+                 'mnt_RG', 'mnt_avoir','mnt_penalite', 'mnt_net_apayer', 'ordre_virement', 'statut')
         export_order = fields
 
 class FactureResourceDLP(resources.ModelResource):
@@ -82,7 +82,7 @@ class FactureResourceDLP(resources.ModelResource):
     rc = fields.Field(attribute='beneficiaire__registre_commerce', column_name='RC')
     echeance_contractuelle = fields.Field(attribute='contrat__mode_paiement', column_name='Echéance contractuelle')
     date_reglement = fields.Field(attribute='ordre_virement__date_remise_banque', column_name='Date règlement')
-    
+
     # Champs calculés
     date_echeance = fields.Field(column_name='Date échéance théorique')
     jours_retard = fields.Field(column_name='Jours de retard (réglé)')
@@ -93,23 +93,23 @@ class FactureResourceDLP(resources.ModelResource):
         """Calcule la date d'échéance selon le mode de paiement"""
         if not date_execution or not echeance_contractuelle:
             return None
-            
+
         mode = echeance_contractuelle.upper()
-        
+
         delais = {
-            '15J': 15, '30J': 30, '60J': 60, 
+            '15J': 15, '30J': 30, '60J': 60,
             '90J': 90, '120J': 120
         }
-        
+
         if mode in delais:
             return date_execution + relativedelta(days=delais[mode])
-        
+
         if mode.endswith('JFDM'):
             base_delai = mode.replace('JFDM', 'J')
             if base_delai in delais:
                 date_plus_delai = date_execution + relativedelta(days=delais[base_delai])
                 return date_plus_delai + relativedelta(day=31)
-            
+
         return None
 
     def get_trimestre_precedent(self):
@@ -117,7 +117,7 @@ class FactureResourceDLP(resources.ModelResource):
         today = date.today()
         mois_en_cours = today.month
         trimestre_en_cours = (mois_en_cours - 1) // 3 + 1
-        
+
         # Calcul du trimestre précédent
         if trimestre_en_cours == 1:
             trimestre_precedent = 4
@@ -125,23 +125,23 @@ class FactureResourceDLP(resources.ModelResource):
         else:
             trimestre_precedent = trimestre_en_cours - 1
             annee = today.year
-        
+
         # Détermination des mois du trimestre précédent
         premier_mois_trimestre = (trimestre_precedent - 1) * 3 + 1
-        
+
         # Calcul plus robuste de la fin du trimestre
         dernier_mois_trimestre = premier_mois_trimestre + 2
         fin_trimestre = date(annee, dernier_mois_trimestre, 1) + relativedelta(months=1, days=-1)
-        
+
         debut_trimestre = date(annee, premier_mois_trimestre, 1)
-        
+
         return debut_trimestre, fin_trimestre
 
     def is_in_trimestre_precedent(self, date_a_verifier):
         """Vérifie si une date se situe dans le trimestre précédent"""
         if not date_a_verifier:
             return False
-            
+
         debut_trimestre, fin_trimestre = self.get_trimestre_precedent()
         return debut_trimestre <= date_a_verifier <= fin_trimestre
 
@@ -157,7 +157,7 @@ class FactureResourceDLP(resources.ModelResource):
         try:
             date_exec = facture.date_execution
             echeance_contract = facture.contrat.mode_paiement if facture.contrat else '60J'
-            
+
             date_echeance = self.calculate_echeance(date_exec, echeance_contract)
             return date_echeance.strftime('%d/%m/%Y') if date_echeance else "NA"
         except:
@@ -168,18 +168,18 @@ class FactureResourceDLP(resources.ModelResource):
         try:
             if not facture.ordre_virement or not facture.ordre_virement.date_remise_banque:
                 return "FNReglée"
-            
+
             date_echeance = self.calculate_echeance(
                 facture.date_execution,
                 facture.contrat.mode_paiement if facture.contrat else '60J'
             )
-            
+
             if not date_echeance:
                 return "Echéance invalide"
-            
+
             debut_trimestre, fin_trimestre = self.get_trimestre_precedent()
             date_reglement = facture.ordre_virement.date_remise_banque
-            
+
             # Règlement non effectué ou effectué après la fin du trimestre précédent
             if date_reglement > fin_trimestre:
                 date_reference = fin_trimestre
@@ -189,7 +189,7 @@ class FactureResourceDLP(resources.ModelResource):
                     date_reference = date_reglement
                 else:
                     date_reference = debut_trimestre
-            
+
             retard = self.calculate_retard(date_reference, date_echeance)
             return str(retard) if retard is not None else "NA"
         except:
@@ -200,18 +200,18 @@ class FactureResourceDLP(resources.ModelResource):
         try:
             if facture.ordre_virement and facture.ordre_virement.date_remise_banque:
                 return "FReglée"
-            
+
             date_echeance = self.calculate_echeance(
                 facture.date_execution,
                 facture.contrat.mode_paiement if facture.contrat else '60J'
             )
-            
+
             if not date_echeance:
                 return "Echéance invalide"
-            
+
             _, fin_trimestre = self.get_trimestre_precedent()
             retard = self.calculate_retard(fin_trimestre, date_echeance)
-            
+
             return str(retard)
         except:
             return "Erreur"
@@ -220,24 +220,24 @@ class FactureResourceDLP(resources.ModelResource):
         """Détermine si la facture doit être sélectionnée (1) ou non (0)"""
         try:
             debut_trimestre, fin_trimestre = self.get_trimestre_precedent()
-            
+
             # Vérifie la date de réalisation
             date_realisation = facture.date_execution
             if date_realisation and debut_trimestre <= date_realisation <= fin_trimestre:
                 return "1"
-            
+
             # Vérifie la date de règlement
             if facture.ordre_virement and facture.ordre_virement.date_remise_banque:
                 date_reglement = facture.ordre_virement.date_remise_banque
                 if debut_trimestre <= date_reglement <= fin_trimestre:
                     return "1"
-            
+
             # Recalcule la date d'échéance
             echeance_contract = facture.contrat.mode_paiement if facture.contrat else '60J'
             date_echeance_calculee = self.calculate_echeance(date_realisation, echeance_contract)
             if date_echeance_calculee and debut_trimestre <= date_echeance_calculee <= fin_trimestre:
                 return "1"
-            
+
             return "0"
         except:
             return "Erreur"
@@ -290,7 +290,7 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
 
     fields = ('beneficiaire', 'contrat', 'num_facture', 'nature_achat', 'date_facture',
              'date_echeance', 'montant_ht', 'mnt_tva', 'montant_ttc',
-             'mnt_RAS_IS', 'mnt_RAS_TVA', 'mnt_RG', 'mnt_net_apayer',
+             'mnt_RAS_IS', 'mnt_RAS_TVA', 'mnt_RG', 'mnt_avoir', 'mnt_penalite', 'mnt_net_apayer',
              'proforma_pdf', 'facture_pdf', 'PV_reception_pdf', 'date_execution',
              'ordre_virement', 'statut')
 
@@ -334,7 +334,7 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
         )
 
         return self.process_export(request, FactureResourceTVA(), queryset)
-    
+
     export_tva_selected.short_description = _("Exporter la sélection (TVA) - mois précédent")
 
     def process_export(self, request, resource, queryset=None):
