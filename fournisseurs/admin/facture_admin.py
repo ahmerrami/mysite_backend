@@ -292,7 +292,7 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
              'date_echeance', 'montant_ht', 'mnt_tva', 'montant_ttc',
              'mnt_RAS_IS', 'mnt_RAS_TVA', 'mnt_RG', 'mnt_avoir', 'mnt_penalite', 'mnt_net_apayer',
              'proforma_pdf', 'facture_pdf', 'avoir_pdf', 'PV_reception_pdf', 'date_execution',
-             'ordre_virement', 'statut')
+             'ordre_virement', 'statut', 'created_by', 'updated_by')
 
     list_display = ('num_facture', 'beneficiaire', 'contrat', 'montant_ttc',
                    'mnt_net_apayer', 'date_echeance', 'statut')
