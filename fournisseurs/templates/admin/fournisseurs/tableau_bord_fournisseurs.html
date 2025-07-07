@@ -10,14 +10,14 @@
         margin: 15px 0;
         border-collapse: collapse;
     }
-    
+
     #changelist table.dashboard th,
     #changelist table.dashboard td {
         padding: 8px 10px;
         vertical-align: middle;
         border: 1px solid #e1e1e1;
     }
-    
+
     /* En-têtes */
     #changelist table.dashboard th {
         background: var(--header-bg, #004b7c);
@@ -26,60 +26,67 @@
         font-weight: bold;
         text-align: center;
     }
-    
+
+    /* Colonne Bénéficiare */
+    #changelist table.dashboard td:first-child a {
+        color: #000000;
+        text-decoration: none;
+    }
+
     .group-header {
         background-color: #003366;
         color: white;
         text-align: center;
     }
-    
+
     /* Colonnes alternées */
-    .col-nb { 
-        background-color: #f8f8f8; 
+    .col-nb {
+        background-color: #f8f8f8;
+        color : black;
         text-align: center;
     }
-    
-    .col-montant { 
+
+    .col-montant {
         background-color: #f0f0f0;
         text-align: right;
     }
-    
+
     /* Lignes alternées */
     tr.row1 { background-color: #ffffff; }
     tr.row2 { background-color: #f9f9f9; }
-    
+
     /* Classes utilitaires */
     .text-center { text-align: center; }
     .text-right { text-align: right; }
     .nowrap { white-space: nowrap; }
-    
+
     /* Styles spécifiques */
-    .warning { 
-        color: #ba2121; 
-        font-weight: bold; 
+    .warning {
+        color: #ba2121;
+        font-weight: bold;
     }
-    
+
     .total {
         font-weight: bold;
         background: rgba(0,0,0,0.05);
     }
-    
-    .montant { 
-        color: #006600; 
-        font-weight: bold; 
+
+    .montant {
+        color: #006600;
+        font-weight: bold;
     }
-    
-    .montant-retard { 
-        color: #ba2121; 
+
+    .montant-retard {
+        color: #ba2121;
     }
-    
-    .montant-urgent { 
-        color: #ff8c00; 
+
+    .montant-urgent {
+        color: #ff8c00;
     }
-    
-    .high-amount { 
-        color: red; 
-        font-weight: bold; 
+
+    .high-amount {
+        color: red;
+        font-weight: bold;
     }
 </style>
 {% endblock %}
