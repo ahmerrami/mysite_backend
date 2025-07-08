@@ -2,7 +2,7 @@
 
 import os
 import django
-from datetime import datetime
+from datetime import datetime, timedelta
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.prod")
 django.setup()
@@ -11,6 +11,7 @@ from django.core.management.base import BaseCommand
 from fournisseurs.models.facture_model import Facture
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
 from decouple import config
 
@@ -24,10 +25,15 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE("Pas d'envoi des factures le week-end (samedi/dimanche)"))
             return
 
-        # Récupérer les factures non payées avec les relations nécessaires
-        factures = Facture.objects.exclude(statut='payee').select_related('beneficiaire').order_by('date_echeance')
+        today_date = timezone.now().date()
+        date_limite = today_date + timedelta(days=5)
 
-        titre = 'Suivi des factures impayées'
+        # Récupérer les factures non payées avec échéance dans les 5 jours ou déjà échues
+        factures = Facture.objects.exclude(statut='payee').filter(  # ✅ Utilisez exclude()
+            date_echeance__lte=date_limite
+        ).select_related('beneficiaire').order_by('date_echeance')
+
+        titre = 'Factures à régler en urgence'
 
         # Préparer les données pour le template
         context = {
@@ -42,7 +48,7 @@ class Command(BaseCommand):
 
         # Envoyer l'email
         email = EmailMessage(
-            subject="Suivi quotidien des factures impayées",
+            subject="Suivi quotidien des factures impayées déjà échues ou avec échéance dans les 5 prochains jours",
             body=html_message,
             from_email=config('AUTHEMAIL_EMAIL_HOST_USER'),
             to = config('TO_DESTINATAIRES_FACTURES', default='').split(',')
