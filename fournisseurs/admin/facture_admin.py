@@ -16,7 +16,7 @@ from dateutil.relativedelta import relativedelta
 from import_export import resources, fields
 from import_export.admin import ExportMixin
 
-from fournisseurs.models.facture_model import Facture, Avoir, Beneficiaire
+from fournisseurs.models.facture_model import Facture, Beneficiaire
 from fournisseurs.filters import DateRangeFilter
 from .dashboard import tableau_bord_view  # Importez la vue depuis le nouveau fichier
 
@@ -374,16 +374,3 @@ class FactureAdmin(ExportMixin, admin.ModelAdmin):
         return format_html('<a href="{}" target="_blank">Voir le tableau de bord</a>', "/admin/fournisseurs/tableau_bord_fournisseurs/")
 
     lien_tableau_bord.short_description = "Tableau de bord"
-
-#@admin.register(Avoir)
-@admin.register(Avoir, site=fournisseur_admin)
-class AvoirAdmin(admin.ModelAdmin):
-    fields = ('num_facture', 'facture_associee', 'date_facture', 'date_echeance',
-              'montant_ht', 'mnt_tva', 'montant_ttc', 'mnt_RAS_TVA', 'mnt_RAS_IS',
-              'mnt_RG', 'mnt_net_apayer')
-    readonly_fields = ('date_echeance', 'montant_ttc', 'mnt_net_apayer')
-    list_display = ('num_facture', 'facture_associee', 'montant_ttc', 'date_facture')
-    list_select_related = ('facture_associee',)
-
-    def has_import_permission(self, request):
-        return request.user.is_superuser
