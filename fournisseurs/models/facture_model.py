@@ -34,7 +34,7 @@ class BaseFacture(AuditModel):
     mnt_RAS_TVA = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS TVA", default=0.00)
     mnt_RAS_IS = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RAS IS", default=0.00)
     mnt_RG = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant RG", default=0.00)
-    mnt_avoir = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant Avoir", default=0.00)
+    mnt_avoir = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant Avoir HT", default=0.00)
     mnt_penalite = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant Pénalité", default=0.00)
     mnt_net_apayer = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant net à payer", default=0.00)
 
@@ -168,13 +168,13 @@ class Facture(BaseFacture):
         Calcule les montants liés aux retenues et au net à payer.
         """
         if self.contrat:
-            self.mnt_tva = self.montant_ht * (self.contrat.taux_de_TVA / 100)
-            self.montant_ttc = self.montant_ht + self.mnt_tva
+            self.mnt_tva = (self.montant_ht-self.mnt_avoir) * (self.contrat.taux_de_TVA / 100) # prise en compte du montant avoir
+            self.montant_ttc = (self.montant_ht-self.mnt_avoir) + self.mnt_tva # prise en compte du montant avoir
             if self.montant_ttc > 5000:
                 self.mnt_RAS_TVA = self.mnt_tva * (self.contrat.taux_RAS_TVA / 100)
             else:
                 self.mnt_RAS_TVA = 0
-            self.mnt_RAS_IS = self.montant_ht * (self.contrat.taux_RAS_IS / 100)
+            self.mnt_RAS_IS = (self.montant_ht-self.mnt_avoir) * (self.contrat.taux_RAS_IS / 100)
             self.mnt_RG = self.montant_ttc * (self.contrat.taux_RG / 100)
             #self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG)
 
@@ -182,12 +182,17 @@ class Facture(BaseFacture):
                 Decimal(self.mnt_RAS_TVA or 0) +
                 Decimal(self.mnt_RAS_IS or 0) +
                 Decimal(self.mnt_RG or 0) +
-                Decimal(self.mnt_avoir or 0) +
+                #Decimal(self.mnt_avoir or 0) +
                 Decimal(self.mnt_penalite or 0)
             )
         else:
-            self.montant_ttc = self.montant_ht + self.mnt_tva
-            self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA + self.mnt_RAS_IS + self.mnt_RG + self.mnt_avoir + self.mnt_penalite)
+            self.montant_ttc = self.montant_ht - self.mnt_avoir + self.mnt_tva # prise en compte du montant avoir
+            self.mnt_net_apayer = self.montant_ttc - (self.mnt_RAS_TVA +
+                                                        self.mnt_RAS_IS +
+                                                        self.mnt_RG +
+                                                        #self.mnt_avoir +
+                                                        self.mnt_penalite
+                                                    )
 
     def clean(self):
         """
