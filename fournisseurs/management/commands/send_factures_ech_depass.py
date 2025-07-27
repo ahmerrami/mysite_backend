@@ -1,4 +1,4 @@
-# fournisseurs/management/commands/send_invoices.py
+# fournisseurs/management/commands/send_factures_ech_depass.py
 
 import os
 import django
