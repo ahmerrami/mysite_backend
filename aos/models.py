@@ -5,6 +5,9 @@ from django.db.models.signals import post_save
 from stages.validators import validate_file_extension
 import os
 
+from datetime import timedelta
+from django.utils import timezone
+
 # Models
 
 # Custom file upload path function
@@ -23,6 +26,7 @@ class AO(models.Model):
     aopdf = models.FileField(upload_to=rename_upload_path_ao, validators=[validate_file_extension])
     isActive = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    expiration_date = models.DateField(default=timezone.now() + timedelta(days=21))
 
     class Meta:
         permissions = [

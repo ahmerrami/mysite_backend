@@ -1,4 +1,4 @@
-# middleware.py
+# fournisseurs/middleware.py
 import threading
 from django.http import HttpResponseForbidden
 from django.conf import settings

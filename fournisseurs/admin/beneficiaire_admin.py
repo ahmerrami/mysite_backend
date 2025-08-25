@@ -1,4 +1,4 @@
-# admin/beneficiaire.py
+# fournisseurs/admin/beneficiaire.py
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from fournisseurs.models.beneficiaire_model import Beneficiaire

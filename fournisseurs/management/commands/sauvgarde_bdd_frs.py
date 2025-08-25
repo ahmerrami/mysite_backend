@@ -31,26 +31,31 @@ def export_multisheet():
     # Feuille 1 - Données beneficiaire
     df1 = pd.DataFrame(list(Beneficiaire.objects.all().values()))
     df1 = make_timezone_naive(df1)
+    df1 = df1.sort_values('updated_at', ascending=False)
     df1.to_excel(writer, sheet_name='beneficiaires', index=False)
 
     # Feuille 2 - Données compte tresorerie
     df2 = pd.DataFrame(list(CompteTresorerie.objects.all().values()))
     df2 = make_timezone_naive(df2)
+    df2 = df2.sort_values('updated_at', ascending=False)
     df2.to_excel(writer, sheet_name='comptesTresorerie', index=False)
 
     # Feuille 3 - Données contrat
     df3 = pd.DataFrame(list(Contrat.objects.all().values()))
     df3 = make_timezone_naive(df3)
+    df3 = df3.sort_values('updated_at', ascending=False)
     df3.to_excel(writer, sheet_name='contrats', index=False)
 
     # Feuille 4 - Données facture
     df4 = pd.DataFrame(list(Facture.objects.all().values()))
     df4 = make_timezone_naive(df4)
+    df4 = df4.sort_values('updated_at', ascending=False)
     df4.to_excel(writer, sheet_name='factures', index=False)
 
     # Feuille 5 - Données ordre de virement
     df5 = pd.DataFrame(list(OrdreVirement.objects.all().values()))
     df5 = make_timezone_naive(df5)
+    df5 = df5.sort_values('updated_at', ascending=False)
     df5.to_excel(writer, sheet_name='ordresVirement', index=False)
 
     # Sauvegarder
