@@ -1,0 +1,31 @@
+#1# commande qui déplacera les dossiers spécifiés dans un nouveau dossier parent fournisseurs/, à l'exception de img/ operationsDiverses/ et stages/ :
+mkdir -p media/fournisseurs && \
+for d in attestations_rib avisDebit avoirs contrats factures proformas receptions virements; do
+    [ -d "media/$d" ] && mv "media/$d" "media/fournisseurs/";
+done
+
+#2# script django pour modifier le chemin d'accès aux attestations RIB
+import os
+from django.core.files.base import ContentFile
+from fournisseurs.models import CompteTresorerie
+
+def migrate_rib_paths():
+    # Récupérer tous les objets avec un attestation_rib_pdf
+    objects = CompteTresorerie.objects.exclude(attestation_rib_pdf__isnull=True).exclude(attestation_rib_pdf='')
+
+    for obj in objects:
+        old_path = obj.attestation_rib_pdf.name
+        if old_path.startswith('attestations_rib/'):
+            # Construire le nouveau chemin
+            new_path = old_path.replace('attestations_rib/', 'fournisseurs/attestations_rib/', 1)
+
+            # Mettre à jour le champ
+            obj.attestation_rib_pdf.name = new_path
+            obj.save()
+
+            print(f"Mis à jour: {old_path} -> {new_path}")
+
+    print("Migration terminée!")
+
+# A exécuter
+python manage.py shell < migrate_rib_paths.py

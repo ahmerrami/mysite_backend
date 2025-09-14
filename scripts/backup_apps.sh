@@ -17,7 +17,7 @@ echo "[$DATE] --- Début du backup ---" >> $LOG_FILE
 DAY=$(date +%u)
 
 # === Backup fournisseurs (tous les jours sauf dimanche) ===
-if [ "$DAY" -ne 7 ]; then
+if [ "$DAY" -ne 2 ]; then
     JSON_FILE=$BACKUP_DIR/fournisseurs/db_$(date +"%Y%m%d_%H%M%S").json
     MEDIA_FILE=$BACKUP_DIR/fournisseurs/media_$(date +"%Y%m%d_%H%M%S").tar.gz
 
@@ -39,7 +39,7 @@ if [ "$DAY" -ne 7 ]; then
 fi
 
 # === Backup stages (uniquement dimanche) ===
-if [ "$DAY" -eq 7 ]; then
+if [ "$DAY" -eq 2 ]; then
     JSON_FILE=$BACKUP_DIR/stages/db_$(date +"%Y%m%d_%H%M%S").json
     MEDIA_FILE=$BACKUP_DIR/stages/media_$(date +"%Y%m%d_%H%M%S").tar.gz
 

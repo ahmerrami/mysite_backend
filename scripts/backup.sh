@@ -7,9 +7,18 @@ LOG_FILE=$BACKUP_DIR/backup.log
 DATE=$(date +"%Y-%m-%d %H:%M:%S")
 PYTHON=~/.virtualenvs/myenv/bin/python
 
+# Vérifier si on est samedi (6 = samedi)
+if [ $(date +%u) -ne 6 ]; then
+    exit 0
+fi
+
 # Créer le dossier de sauvegarde s'il n'existe pas
 mkdir -p $BACKUP_DIR
-cd $PROJECT_DIR
+cd $PROJECT_DIR# Vérifier si on est samedi (6 = samedi)
+if [ $(date +%u) -ne 6 ]; then
+    echo "[$DATE] Backup non exécuté (seulement le samedi)" >> $LOG_FILE
+    exit 0
+fi
 
 # === Début log ===
 echo "[$DATE] --- Début du backup ---" >> $LOG_FILE
