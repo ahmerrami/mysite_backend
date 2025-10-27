@@ -28,6 +28,7 @@ SECRET_KEY = config('SECRET_KEY')
 # os.environ.get('SECRET_KEY')
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
 BLOCKED_IPS = config('BLOCKED_IPS', default='').split(',')
 

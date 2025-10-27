@@ -128,21 +128,26 @@ class OrdreVirement(AuditModel):
             raise ValidationError("Merci de joindre l'avis de débit et de renseigner la date de l'opération avant de cocher la case de compte débité.")
 
     def save(self, *args, **kwargs):
+        raw = kwargs.get('raw', False)
         with transaction.atomic():
-            self.valider_modifications_si_remis_a_banque()
+            self.valider_modifications_si_remis_a_banque(raw=raw)
             self.mettre_a_jour_remis_a_banque()
-            self.valider_modifications_si_compte_debite()
+            self.valider_modifications_si_compte_debite(raw=raw)
             self.mettre_a_jour_statut_factures()
             super().save(*args, **kwargs)
 
-    def valider_modifications_si_remis_a_banque(self):
+    def valider_modifications_si_remis_a_banque(self, raw=False):
+        if raw:
+            return
         if self.pk:
             ancienne_instance = OrdreVirement.objects.get(pk=self.pk)
             if ancienne_instance.remis_a_banque:
                 champs_modifiables = ['remis_a_banque','date_operation_banque','avis_debit_pdf','compte_debite']
                 verifier_modifications_autorisees(self, ancienne_instance, champs_modifiables)
 
-    def valider_modifications_si_compte_debite(self):
+    def valider_modifications_si_compte_debite(self, raw=False):
+        if raw:
+            return
         if self.pk:
             ancienne_instance = OrdreVirement.objects.get(pk=self.pk)
             if ancienne_instance.compte_debite:

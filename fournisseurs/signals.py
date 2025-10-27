@@ -68,6 +68,8 @@ def update_ordre_virement(sender, instance, **kwargs):
     """
     Met à jour le montant de l'ordre de virement après sa création ou modification.
     """
+    if kwargs.get('raw', False):
+        return
     update_ordre_virement_montant(instance)
 
     # Si la référence de l'OV est vide, y mettre l'ID
