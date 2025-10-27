@@ -7,13 +7,14 @@ from django.utils.translation import gettext_lazy as _
 from .audit_model import AuditModel
 from .beneficiaire_model import Beneficiaire
 from .ordre_virement_model import OrdreVirement
-
 from fournisseurs.choices import *  # Importer toutes les constantes
+
 
 class CompteTresorerie(AuditModel):
     """
-    Modèle représentant un compte bancaire ou une caisse associé à un bénéficiaire.
+    Modèle représentant un compte bancaire, une caisse ou un compte chèque associé à un bénéficiaire.
     """
+
     beneficiaire = models.ForeignKey(
         Beneficiaire,
         on_delete=models.CASCADE,
@@ -21,17 +22,20 @@ class CompteTresorerie(AuditModel):
         verbose_name="Bénéficiaire",
         limit_choices_to={'actif': True}
     )
+
     type_compte = models.CharField(
         max_length=10,
         choices=TYPE_COMPTE_CHOICES,
         default='bancaire',
         verbose_name="Type de compte",
-        help_text="Type de compte (bancaire ou caisse)"
+        help_text="Type de compte (bancaire, caisse ou chèque)"
     )
+
+    # === Champs communs / bancaires ===
     banque = models.CharField(
         max_length=50,
         verbose_name="Banque",
-        help_text="Nom de la banque (uniquement pour les comptes bancaires)",
+        help_text="Nom de la banque (uniquement pour les comptes bancaires ou chèque)",
         blank=True,
         null=True
     )
@@ -46,45 +50,42 @@ class CompteTresorerie(AuditModel):
                 message="Le RIB doit contenir exactement 24 chiffres."
             )
         ],
-        error_messages={
-            'unique': _("Ce RIB est déjà utilisé.")
-        },
+        error_messages={'unique': _("Ce RIB est déjà utilisé.")},
         blank=True,
         null=True
     )
+
     est_nantissement = models.BooleanField(
         default=False,
         verbose_name="Compte en nantissement",
         help_text="Cochez si ce compte est utilisé pour un nantissement (peut partager le RIB)"
     )
+
     attestation_rib_pdf = models.FileField(
         upload_to='attestations_rib/',
         verbose_name="Attestation RIB PDF",
         help_text="Fichier PDF de l'attestation RIB (uniquement pour les comptes bancaires)",
         blank=True,
         null=True,
-        validators=[
-            FileExtensionValidator(allowed_extensions=['pdf']),
-        ]
+        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
     )
+
+    # === Champs spécifiques à la caisse ===
     nom_caisse = models.CharField(
         max_length=50,
         verbose_name="Nom de la caisse",
-        help_text="Nom de la caisse (uniquement pour les caisses)",
         blank=True,
         null=True
     )
     emplacement_caisse = models.CharField(
         max_length=100,
         verbose_name="Emplacement de la caisse",
-        help_text="Emplacement physique de la caisse (uniquement pour les caisses)",
         blank=True,
         null=True
     )
     detenteur_caisse = models.CharField(
         max_length=100,
         verbose_name="Détenteur de la caisse",
-        help_text="Détenteur de la caisse (uniquement pour les caisses)",
         blank=True,
         null=True
     )
@@ -104,15 +105,13 @@ class CompteTresorerie(AuditModel):
             if not self.rib:
                 raise ValidationError("Le RIB est obligatoire pour un compte bancaire.")
 
-            # Vérification de l'unicité du RIB pour les comptes non-nantissement
+            # Vérification de l'unicité du RIB
             if not self.est_nantissement:
                 qs = CompteTresorerie.objects.filter(rib=self.rib, est_nantissement=False)
                 if self.pk:
                     qs = qs.exclude(pk=self.pk)
                 if qs.exists():
-                    raise ValidationError(
-                        {"rib": "Ce RIB est déjà utilisé par un autre bénéficiaire (non-nantissement)."}
-                    )
+                    raise ValidationError({"rib": "Ce RIB est déjà utilisé par un autre bénéficiaire (non-nantissement)."})
 
             # Vérification des ordres de virement
             if self.pk and not self.est_nantissement:
@@ -129,7 +128,13 @@ class CompteTresorerie(AuditModel):
             if not self.emplacement_caisse:
                 raise ValidationError("L'emplacement de la caisse est obligatoire.")
 
+        elif self.type_compte == 'cheque':
+            # Aucune validation stricte — champ libre, banque facultative
+            pass
+
     def __str__(self):
         if self.type_compte == 'bancaire':
-            return f"{self.banque or 'Banque inconnue'} - {self.rib or 'RIB non défini'} (Bénéficiaire: {self.beneficiaire.raison_sociale})"
-        return f"Caisse: {self.nom_caisse or 'Non défini'} - {self.emplacement_caisse or 'Non défini'} (Bénéficiaire: {self.beneficiaire.raison_sociale})"
+            return f"Banque: {self.banque or 'Inconnue'} - {self.rib or 'RIB non défini'} (Bénéficiaire: {self.beneficiaire.raison_sociale})"
+        elif self.type_compte == 'cheque':
+            return f"Paiement par chèque ({self.banque or 'Banque non précisée'}) - {self.beneficiaire.raison_sociale}"
+        return f"Caisse: {self.nom_caisse or 'Non défini'} ({self.emplacement_caisse or 'Non défini'}) - {self.beneficiaire.raison_sociale}"

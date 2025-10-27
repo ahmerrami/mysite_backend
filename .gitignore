@@ -23,6 +23,12 @@ db.sqlite3
 */migrations/**  # Ignore migration files, but not the folder itself
 !*/migrations/__init__.py  # Keep the __init__.py files to preserve package structure
 
+# Data files
+*.json
+*.csv
+*.xlsx
+*.xls
+
 # Static and media files
 staticfiles/
 media/

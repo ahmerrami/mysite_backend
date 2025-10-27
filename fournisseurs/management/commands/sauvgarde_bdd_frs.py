@@ -68,7 +68,7 @@ def send_email_with_attachment(filename, subject, body, to_emails=None):
     Envoie un email avec le fichier en pièce jointe
     """
     if to_emails is None:
-        to_emails = ['a.errami@supratourstravel.com']
+        to_emails = ['a.errami@supratourstravel.com','d.naitcheikh@supratourstravel.com']
 
     email = EmailMessage(
         subject=subject,

@@ -29,19 +29,19 @@ else
 fi
 
 # Sauvegarde du dossier media
-MEDIA_FILE=$BACKUP_DIR/media_$(date +"%Y%m%d_%H%M%S").tar.gz
-if tar -czf "$MEDIA_FILE" media/; then
-    echo "[$DATE] Media sauvegardé : $MEDIA_FILE" >> "$LOG_FILE"
-else
-    echo "[$DATE] ❌ ERREUR lors de la sauvegarde media" >> "$LOG_FILE"
-fi
+# MEDIA_FILE=$BACKUP_DIR/media_$(date +"%Y%m%d_%H%M%S").tar.gz
+# if tar -czf "$MEDIA_FILE" media/; then
+#    echo "[$DATE] Media sauvegardé : $MEDIA_FILE" >> "$LOG_FILE"
+# else
+#    echo "[$DATE] ❌ ERREUR lors de la sauvegarde media" >> "$LOG_FILE"
+# fi
 
 # Nettoyage des vieux backups
 ls -1t "$BACKUP_DIR"/db_*.json | tail -n +4 | xargs -r rm -- && \
 echo "[$DATE] Nettoyage : conservé 3 derniers JSON" >> "$LOG_FILE"
 
-ls -1t "$BACKUP_DIR"/media_*.tar.gz | tail -n +2 | xargs -r rm -- && \
-echo "[$DATE] Nettoyage : conservé 1 seul media" >> "$LOG_FILE"
+# ls -1t "$BACKUP_DIR"/media_*.tar.gz | tail -n +2 | xargs -r rm -- && \
+# echo "[$DATE] Nettoyage : conservé 1 seul media" >> "$LOG_FILE"
 
 # === Fin log ===
 echo "[$DATE] --- Fin du backup ---" >> "$LOG_FILE"

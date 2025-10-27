@@ -6,8 +6,18 @@ from django.core.mail import EmailMessage
 from .models import Ville, Periode, Stage
 
 # Register your models here.
-admin.site.register(Ville)
-admin.site.register(Periode)
+
+@admin.register(Periode)
+class PeriodeAdmin(admin.ModelAdmin):
+    list_display = ('periode', 'active')  # colonnes affichées dans la liste
+    list_filter = ('active',)           # filtre latéral pour le statut
+    ordering = ('periode',)               # tri alphabétique
+
+@admin.register(Ville)
+class VilleAdmin(admin.ModelAdmin):
+    list_display = ('ville', 'active')  # colonnes affichées dans la liste
+    list_filter = ('active',)           # filtre latéral pour le statut
+    ordering = ('ville',)               # tri alphabétique
 
 class PeriodeWidget(Widget):
     def render(self, value, obj=None):
