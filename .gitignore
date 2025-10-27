@@ -25,7 +25,7 @@ db.sqlite3
 
 # JSON files
 *.json
-µ.csv
+*.csv
 *.xlsx
 *.xls
 
