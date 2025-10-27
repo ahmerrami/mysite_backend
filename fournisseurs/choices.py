@@ -5,6 +5,7 @@ ov_start_num = 8000 # numéro de départ des OV sur cette app
 TYPE_COMPTE_CHOICES = [
     ('bancaire', 'Compte bancaire'),
     ('caisse', 'Caisse'),
+    ('cheque', 'Paiement par chèque'),
 ]
 
 TYPE_CONTRAT = [

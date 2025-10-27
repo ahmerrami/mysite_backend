@@ -9,7 +9,7 @@ from decouple import config
 # Models
 
 class Ville(models.Model):
-    ville = models.CharField(max_length=15, unique=True)
+    ville = models.CharField(max_length=40, unique=True)
     active = models.BooleanField(default=True)
 
     def __str__(self):

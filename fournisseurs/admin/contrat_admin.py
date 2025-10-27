@@ -11,7 +11,8 @@ from fournisseurs.admin.facture_admin import fournisseur_admin
 class ContratAdmin(ImportExportModelAdmin):
     list_display = ('numero_contrat', 'objet', 'beneficiaire')
     list_filter = ('moe','type_contrat')
-    search_fields = ('numero_contrat',)
+    search_fields = ('numero_contrat','beneficiaire__raison_sociale',)
+    #search_fields = ('contrat__numero_contrat', 'num_facture', 'beneficiaire__raison_sociale')
     readonly_fields = ('created_by','updated_by')
     list_per_page = 15
 
