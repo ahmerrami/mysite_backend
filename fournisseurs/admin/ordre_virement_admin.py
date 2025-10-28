@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields
+from django.db.models.functions import Lower
 
 ############### Pour la génération de l'OV pdf
 from django.urls import path
@@ -76,7 +77,8 @@ class OrdreVirementForm(forms.ModelForm):
         else:
             self.fields['compte_tresorerie_emetteur'].queryset = CompteTresorerie.objects.none()
 
-        self.fields['beneficiaire'].queryset = Beneficiaire.objects.filter(actif=True).order_by('raison_sociale')
+        # Configuration simple pour le bénéficiaire
+        self.fields['beneficiaire'].queryset = Beneficiaire.objects.filter(actif=True).order_by(Lower('raison_sociale'))
 
 def export_ov_as_csv(modeladmin, request, queryset):
     response = HttpResponse(content_type='text/csv')
@@ -107,7 +109,7 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
         js = (
             'admin/js/jquery.init.js',
             'fournisseurs/js/compte_tresorerie_filter.js',
-            'fournisseurs/js/beneficiaire_filter.js',
+            'fournisseurs/js/beneficiaire_filter.js?v=3',  # Version pour forcer le reload
             'fournisseurs/js/affect_factures.js'
         )
 

@@ -21,8 +21,16 @@
                     compteBancaireField.empty(); // Vide les options actuelles
                     compteBancaireField.append($("<option></option>").attr("value", "").text("---------")); // Ajoute une option vide
 
-                    $.each(data, function(key, value) {
-                        beneficiaire_field.append($("<option></option>").attr("value", key).text(value));
+                    // Convertir les données en tableau et les trier par valeur (nom du bénéficiaire)
+                    var sortedData = Object.keys(data).map(function(key) {
+                        return { key: key, value: data[key] };
+                    }).sort(function(a, b) {
+                        return a.value.toLowerCase().localeCompare(b.value.toLowerCase());
+                    });
+
+                    // Ajouter les options triées
+                    sortedData.forEach(function(item) {
+                        beneficiaire_field.append($("<option></option>").attr("value", item.key).text(item.value));
                     });
 
                     // Si une valeur existante doit être préservée, la sélectionner à nouveau

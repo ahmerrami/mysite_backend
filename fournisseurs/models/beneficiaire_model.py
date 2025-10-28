@@ -84,4 +84,4 @@ class Beneficiaire(AuditModel):
         ordering = ['raison_sociale']
 
     def __str__(self):
-        return f"{self.id} - {self.raison_sociale[:20]} (RC: {self.registre_commerce}, IF: {self.identifiant_fiscale})"
+        return f"{self.raison_sociale} (RC: {self.registre_commerce}, IF: {self.identifiant_fiscale})"

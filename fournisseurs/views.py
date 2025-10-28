@@ -21,12 +21,17 @@ from .models import Beneficiaire, CompteTresorerie, Contrat, OrdreVirement, Fact
 from utils.conversions import nombre_en_toutes_lettres
 
 def get_beneficiaires(request):
+    from django.db.models.functions import Lower
+    
     type_ov = request.GET.get('type_ov')
     societe = get_object_or_404(Beneficiaire, raison_sociale=settings.SOCIETE)
 
-    beneficiaires = Beneficiaire.objects.filter(actif=True).exclude(id=societe.id) if type_ov == 'Virement' else (
-        Beneficiaire.objects.filter(id=societe.id, actif=True) if type_ov == 'Transfert' else Beneficiaire.objects.filter(actif=True)
-    )
+    if type_ov == 'Virement':
+        beneficiaires = Beneficiaire.objects.filter(actif=True).exclude(id=societe.id).order_by(Lower('raison_sociale'))
+    elif type_ov == 'Transfert':
+        beneficiaires = Beneficiaire.objects.filter(id=societe.id, actif=True).order_by(Lower('raison_sociale'))
+    else:
+        beneficiaires = Beneficiaire.objects.filter(actif=True).order_by(Lower('raison_sociale'))
 
     data = {beneficiaire.id: str(beneficiaire) for beneficiaire in beneficiaires}
     return JsonResponse(data)
