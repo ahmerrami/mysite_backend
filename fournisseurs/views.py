@@ -24,15 +24,28 @@ def get_beneficiaires(request):
     from django.db.models.functions import Lower
     
     type_ov = request.GET.get('type_ov')
+    filtre_factures_attente = request.GET.get('filtre_factures_attente', 'false').lower() == 'true'
     societe = get_object_or_404(Beneficiaire, raison_sociale=settings.SOCIETE)
 
-    if type_ov == 'Virement':
-        beneficiaires = Beneficiaire.objects.filter(actif=True).exclude(id=societe.id).order_by(Lower('raison_sociale'))
-    elif type_ov == 'Transfert':
-        beneficiaires = Beneficiaire.objects.filter(id=societe.id, actif=True).order_by(Lower('raison_sociale'))
-    else:
-        beneficiaires = Beneficiaire.objects.filter(actif=True).order_by(Lower('raison_sociale'))
+    # Filtre de base
+    base_filter = {'actif': True}
+    
+    # Si demandé, ajouter le filtre pour les factures en attente
+    if filtre_factures_attente:
+        base_filter['factures_beneficiaire__statut'] = 'attente'
 
+    if type_ov == 'Virement':
+        beneficiaires = Beneficiaire.objects.filter(**base_filter).exclude(id=societe.id)
+    elif type_ov == 'Transfert':
+        beneficiaires = Beneficiaire.objects.filter(id=societe.id, **base_filter)
+    else:
+        beneficiaires = Beneficiaire.objects.filter(**base_filter)
+    
+    # Appliquer distinct() seulement si on filtre par factures
+    if filtre_factures_attente:
+        beneficiaires = beneficiaires.distinct()
+    
+    beneficiaires = beneficiaires.order_by(Lower('raison_sociale'))
     data = {beneficiaire.id: str(beneficiaire) for beneficiaire in beneficiaires}
     return JsonResponse(data)
 

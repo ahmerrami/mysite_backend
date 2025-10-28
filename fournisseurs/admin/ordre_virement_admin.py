@@ -77,8 +77,13 @@ class OrdreVirementForm(forms.ModelForm):
         else:
             self.fields['compte_tresorerie_emetteur'].queryset = CompteTresorerie.objects.none()
 
-        # Configuration simple pour le bénéficiaire
-        self.fields['beneficiaire'].queryset = Beneficiaire.objects.filter(actif=True).order_by(Lower('raison_sociale'))
+        # Configuration pour limiter aux bénéficiaires ayant des factures en attente
+        beneficiaires_avec_factures_attente = Beneficiaire.objects.filter(
+            actif=True,
+            factures_beneficiaire__statut='attente'  # Factures en attente
+        ).distinct().order_by(Lower('raison_sociale'))
+        
+        self.fields['beneficiaire'].queryset = beneficiaires_avec_factures_attente
 
 def export_ov_as_csv(modeladmin, request, queryset):
     response = HttpResponse(content_type='text/csv')
@@ -109,7 +114,7 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
         js = (
             'admin/js/jquery.init.js',
             'fournisseurs/js/compte_tresorerie_filter.js',
-            'fournisseurs/js/beneficiaire_filter.js?v=3',  # Version pour forcer le reload
+            'fournisseurs/js/beneficiaire_filter.js?v=4',  # Version mise à jour
             'fournisseurs/js/affect_factures.js'
         )
 

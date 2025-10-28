@@ -11,7 +11,10 @@
 
             $.ajax({
                 url: '/api/fournisseurs/get_beneficiaires/', // URL de la vue Django
-                data: { 'type_ov': selected_type },
+                data: { 
+                    'type_ov': selected_type,
+                    'filtre_factures_attente': 'true'  // Filtrer par factures en attente pour OrdreVirement
+                },
                 dataType: 'json',
                 success: function(data) {
                     var should_preserve_value = current_value && current_value !== ""; // Vérifie si une valeur est déjà définie
