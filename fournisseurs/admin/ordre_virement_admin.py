@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django import forms
 from django.conf import settings
+from django.db import models
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields
 from django.db.models.functions import Lower
@@ -83,7 +84,17 @@ class OrdreVirementForm(forms.ModelForm):
             factures_beneficiaire__statut='attente'  # Factures en attente
         ).distinct().order_by(Lower('raison_sociale'))
         
-        self.fields['beneficiaire'].queryset = beneficiaires_avec_factures_attente
+        # Si c'est une modification d'un OV existant, toujours inclure le bénéficiaire actuel
+        if instance and instance.beneficiaire:
+            # Créer un queryset qui inclut le bénéficiaire actuel + ceux avec factures en attente
+            beneficiaires_queryset = Beneficiaire.objects.filter(
+                models.Q(id=instance.beneficiaire.id) |  # Bénéficiaire actuel
+                models.Q(actif=True, factures_beneficiaire__statut='attente')  # Ceux avec factures en attente
+            ).distinct().order_by(Lower('raison_sociale'))
+            self.fields['beneficiaire'].queryset = beneficiaires_queryset
+        else:
+            # Pour un nouvel OV, limiter aux bénéficiaires avec factures en attente
+            self.fields['beneficiaire'].queryset = beneficiaires_avec_factures_attente
 
 def export_ov_as_csv(modeladmin, request, queryset):
     response = HttpResponse(content_type='text/csv')
