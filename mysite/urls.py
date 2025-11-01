@@ -11,6 +11,7 @@ urlpatterns = [
 	path('admin/', admin.site.urls),
 
 	path('api/accounts/', include('authemail.urls')),
+	path('accounts/', include('accounts.urls')),  # URLs pour reset password
 	path('api/stages/', include('stages.urls')),
 	path('api/aos/', include('aos.urls')),
 	path('api/omra/', include('omra.urls')),

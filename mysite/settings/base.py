@@ -82,9 +82,9 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'mysite/templates'),
-            os.path.join(BASE_DIR, 'accounts/templates'),
-            os.path.join(BASE_DIR, "templates"),
+            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, '../accounts/templates'),
+            os.path.join(BASE_DIR, "../templates"),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -155,3 +155,15 @@ EMAIL_HOST_USER = config('AUTHEMAIL_EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('AUTHEMAIL_EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+# Configuration pour la réinitialisation de mot de passe
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/admin/'
+
+# URLs pour les templates d'email
+AUTHEMAIL_EMAIL_VERIFICATION_URL = config('AUTHEMAIL_EMAIL_VERIFICATION_URL', default='/api/accounts/email/verify/')
+AUTHEMAIL_PASSWORD_RESET_URL = config('AUTHEMAIL_PASSWORD_RESET_URL', default='/accounts/password/reset/confirm/')
+
+# Optionnel : personnaliser les templates d'email
+AUTHEMAIL_EMAIL_FROM = config('AUTHEMAIL_EMAIL_HOST_USER')
+AUTHEMAIL_EMAIL_SUBJECT_PREFIX = config('AUTHEMAIL_EMAIL_SUBJECT_PREFIX', default='[' + config('SOCIETE') + '] ')
