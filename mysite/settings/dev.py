@@ -8,11 +8,18 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
 
-# Configuration SQLite (sans dépendance externe)
+# Configuration MySQL (base de données importée depuis PythonAnywhere)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',  # Stockée dans le répertoire du projet
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mysite_pythonanywhere',
+        'USER': 'webmaster',
+        'PASSWORD': 'pwmysql@2025',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
 }
 
