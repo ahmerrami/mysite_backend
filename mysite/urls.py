@@ -5,15 +5,23 @@ from django.urls import include, path
 from fournisseurs.admin.facture_admin import fournisseur_admin
 
 urlpatterns = [
-    # URL de l'admin personnalisé pour les fournisseurs
-    path('admin/fournisseurs/', fournisseur_admin.urls),
-
-	path('admin/', admin.site.urls),
-
-	path('api/accounts/', include('authemail.urls')),
-	path('accounts/', include('accounts.urls')),  # URLs pour reset password
+	# URLs API et applications (doivent être avant l'admin à la racine)
+	
+	# API endpoints désactivées pour sécurité (non utilisées par le frontend)
+	# path('api/accounts/', include('authemail.urls')),
+	# path('api/fournisseurs/', include('fournisseurs.urls')),
+	
+	# API endpoints actifs (utilisés par mysite_frontend)
 	path('api/stages/', include('stages.urls')),
 	path('api/aos/', include('aos.urls')),
 	path('api/omra/', include('omra.urls')),
-	path('api/fournisseurs/', include('fournisseurs.urls')),
+	
+	# URLs pour l'authentification et reset password
+	path('accounts/', include('accounts.urls')),
+	
+    # Admin personnalisé pour les fournisseurs
+    path('fournisseurs/', fournisseur_admin.urls),
+
+	# Admin Django standard à la racine (doit être en dernier)
+	path('', admin.site.urls),
 ]
