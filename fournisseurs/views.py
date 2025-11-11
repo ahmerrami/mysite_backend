@@ -13,8 +13,6 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
-#from reportlab.lib import colors
-#from reportlab.lib.colors import red  # Importer la couleur rouge
 
 from .filters import get_factures_queryset
 from .models import Beneficiaire, CompteTresorerie, Contrat, OrdreVirement, Facture
@@ -69,10 +67,6 @@ def get_factures_all(request):
 
     return JsonResponse(list(factures), safe=False)
 
-def get_contrats_all_(request): # juste pour test
-    print("Appel de get_contrats_all")
-    return JsonResponse({"message": "Endpoint found"}, status=200)
-
 def get_contrats_all(request):
     beneficiaire_id = request.GET.get('beneficiaire_id')
 
@@ -82,12 +76,6 @@ def get_contrats_all(request):
     contrats = Contrat.objects.filter(beneficiaire_id=beneficiaire_id, actif=True)
     data = {contrat.id: str(contrat) for contrat in contrats}
     return JsonResponse(data)
-
-    #contrats = get_contrats_queryset(beneficiaire_id).values(
-    #    'id', 'numero_contrat', 'montant_HT', 'taux_de_TVA', 'moe'
-    #)
-
-    #return JsonResponse(list(contrats), safe=False)
 
 def update_montant_ordre_virement(request, ordre_virement_id):
     ordre_virement = get_object_or_404(OrdreVirement, id=ordre_virement_id)
