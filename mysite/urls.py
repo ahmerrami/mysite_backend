@@ -9,12 +9,14 @@ urlpatterns = [
 	
 	# API endpoints désactivées pour sécurité (non utilisées par le frontend)
 	# path('api/accounts/', include('authemail.urls')),
-	# path('api/fournisseurs/', include('fournisseurs.urls')),
 	
 	# API endpoints actifs (utilisés par mysite_frontend)
 	path('api/stages/', include('stages.urls')),
 	path('api/aos/', include('aos.urls')),
 	path('api/omra/', include('omra.urls')),
+	
+	# API endpoints AJAX pour l'administration (utilisés par les fichiers .js)
+	path('api/fournisseurs/', include('fournisseurs.urls')),
 	
 	# URLs pour l'authentification et reset password
 	path('accounts/', include('accounts.urls')),
