@@ -1,15 +1,15 @@
-asgiref==3.8.1
+asgiref==3.7.2
 certifi==2024.2.2
 chardet==5.2.0
 charset-normalizer==3.3.2
 defusedxml==0.7.1
 diff-match-patch==20230430
-Django==4.2.16
+Django==4.2.16  # ⬆️ Upgrade de 3.2.25 → 4.2.16 LTS
 django-cors-headers==4.3.1
-django-import-export==4.0.0
+django-import-export==4.0.0  # ⬆️ Upgrade recommandé
 django-ipware==6.0.4
 django-rest-authemail==2.1.7
-djangorestframework==3.15.2
+djangorestframework==3.15.2  # ⬆️ Dernière version compatible
 docopt==0.6.2
 et-xmlfile==1.1.0
 idna==3.6
@@ -29,9 +29,9 @@ PyYAML==6.0.1
 reportlab==4.3.1
 requests==2.31.0
 six==1.17.0
-sqlparse==0.5.1
+sqlparse==0.5.1  # ⬆️ Version compatible Django 4.2
 tablib==3.5.0
-typing_extensions==4.15.0
+typing_extensions==4.10.0
 tzdata==2025.1
 urllib3==2.2.1
 xlrd==2.0.1
