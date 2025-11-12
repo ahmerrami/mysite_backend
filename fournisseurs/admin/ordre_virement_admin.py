@@ -122,13 +122,10 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
     actions = ['generate_ov_pdf_action','export_ov_as_csv']
 
     class Media:
-        css = {
-            'all': ('fournisseurs/css/ordre_virement_admin.css',)
-        }
         js = (
             'admin/js/jquery.init.js',
             'fournisseurs/js/compte_tresorerie_filter.js',
-            'fournisseurs/js/beneficiaire_filter.js?v=4',  # Version mise à jour
+            'fournisseurs/js/beneficiaire_filter.js?v=4',
             'fournisseurs/js/affect_factures.js'
         )
 
