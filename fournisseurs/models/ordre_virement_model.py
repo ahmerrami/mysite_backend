@@ -133,8 +133,9 @@ class OrdreVirement(AuditModel):
             self.valider_modifications_si_remis_a_banque(raw=raw)
             self.mettre_a_jour_remis_a_banque()
             self.valider_modifications_si_compte_debite(raw=raw)
-            self.mettre_a_jour_statut_factures()
             super().save(*args, **kwargs)
+            # Mise à jour des factures après la sauvegarde (nécessite un pk)
+            self.mettre_a_jour_statut_factures()
 
     def valider_modifications_si_remis_a_banque(self, raw=False):
         if raw:
