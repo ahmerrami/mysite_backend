@@ -22,21 +22,74 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 if (data.length > 0) {
-                    let html = '';
+                    // Construction du tableau HTML
+                    let html = `
+                        <table class="factures-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                            <thead>
+                                <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                                    <th style="padding: 10px; text-align: center; border: 1px solid #dee2e6; width: 60px;">Sélection</th>
+                                    <th style="padding: 10px; text-align: left; border: 1px solid #dee2e6;">N° Facture</th>
+                                    <th style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">Montant TTC</th>
+                                    <th style="padding: 10px; text-align: right; border: 1px solid #dee2e6;">Net à payer</th>
+                                    <th style="padding: 10px; text-align: center; border: 1px solid #dee2e6;">Échéance</th>
+                                    <th style="padding: 10px; text-align: center; border: 1px solid #dee2e6;">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
                     data.forEach(facture => {
                         const isChecked = facture.ordre_virement !== null;
-
-                        // Construction du HTML pour chaque facture
+                        
+                        // Définir la couleur du statut
+                        let statutColor = '#6c757d'; // Gris par défaut
+                        let statutBg = '#f8f9fa';
+                        if (facture.statut === 'en_attente_signature') {
+                            statutColor = '#856404';
+                            statutBg = '#fff3cd';
+                        } else if (facture.statut === 'signee') {
+                            statutColor = '#004085';
+                            statutBg = '#cce5ff';
+                        } else if (facture.statut === 'remise_a_banque') {
+                            statutColor = '#0c5460';
+                            statutBg = '#d1ecf1';
+                        } else if (facture.statut === 'reglee') {
+                            statutColor = '#155724';
+                            statutBg = '#d4edda';
+                        }
+                        
                         html += `
-                            <li>
-                                <label>
+                            <tr style="border-bottom: 1px solid #dee2e6; ${isChecked ? 'background-color: #e7f3ff;' : ''}">
+                                <td style="padding: 8px; text-align: center; border: 1px solid #dee2e6;">
                                     <input type="checkbox" name="factures" value="${facture.id}" ${isChecked ? 'checked' : ''}>
-                                    ${facture.num_facture} - Montant : ${facture.montant_ttc} - Mnt net à payer : ${facture.mnt_net_apayer} - Échéance : ${facture.date_echeance}
-                                </label>
-                            </li>
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #dee2e6;">
+                                    <strong>${facture.num_facture}</strong>
+                                </td>
+                                <td style="padding: 8px; text-align: right; border: 1px solid #dee2e6;">
+                                    ${parseFloat(facture.montant_ttc).toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} DH
+                                </td>
+                                <td style="padding: 8px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                                    ${parseFloat(facture.mnt_net_apayer).toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} DH
+                                </td>
+                                <td style="padding: 8px; text-align: center; border: 1px solid #dee2e6;">
+                                    ${facture.date_echeance}
+                                </td>
+                                <td style="padding: 8px; text-align: center; border: 1px solid #dee2e6;">
+                                    <span style="padding: 4px 8px; border-radius: 4px; background-color: ${statutBg}; color: ${statutColor}; font-size: 12px; font-weight: 500;">
+                                        ${facture.statut_display || facture.statut}
+                                    </span>
+                                </td>
+                            </tr>
                         `;
                     });
-                    facturesContainer.innerHTML = html; // Injection du HTML dans le conteneur
+                    
+                    html += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    facturesContainer.innerHTML = html;
 
                     // Ajouter les écouteurs d'événements pour les cases à cocher
                     addCheckboxEventListeners();

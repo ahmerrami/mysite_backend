@@ -62,10 +62,20 @@ def get_factures_all(request):
     ordre_virement_id = request.GET.get('ordre_virement_id')
 
     factures = get_factures_queryset(beneficiaire_id, ordre_virement_id).values(
-        'id', 'num_facture', 'montant_ttc', 'mnt_net_apayer', 'date_echeance', 'ordre_virement'
+        'id', 'num_facture', 'montant_ttc', 'mnt_net_apayer', 'date_echeance', 'ordre_virement', 'statut'
     )
 
-    return JsonResponse(list(factures), safe=False)
+    # Ajouter le libellé du statut pour l'affichage
+    factures_list = []
+    for facture in factures:
+        facture_dict = dict(facture)
+        # Récupérer le libellé lisible du statut
+        from fournisseurs.models.facture_model import Facture
+        facture_obj = Facture.objects.get(id=facture['id'])
+        facture_dict['statut_display'] = facture_obj.get_statut_display()
+        factures_list.append(facture_dict)
+
+    return JsonResponse(factures_list, safe=False)
 
 def get_contrats_all(request):
     beneficiaire_id = request.GET.get('beneficiaire_id')
