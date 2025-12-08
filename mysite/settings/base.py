@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 	'fournisseurs',
 	'import_export',
 	'operationsDiverses',
+    'dbbackup',
 ]
 
 AUTH_USER_MODEL = 'accounts.MyUser'

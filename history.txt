@@ -1,0 +1,1000 @@
+  893      'Stage Hiver 2025',
+  894      'Stage Printemps 2025'
+  895  ]
+  896  periodes = []
+  897  for nom_periode in periodes_data:
+  898      periode, created = Periode.objects.get_or_create(
+  899          periode=nom_periode,
+  900          defaults={'active': True}
+  901      )
+  902      periodes.append(periode)
+  903      print(f'Période: {periode.periode} {\"(créée)\" if created else \"(existait déjà)\"}')
+  904  print(f'Total périodes disponibles: {len(periodes)}')
+  905  "
+  906  python manage.py shell --settings=mysite.settings.dev
+  907  python manage.py runserver --settings=mysite.settings.dev
+  908  source .venv/bin/activate && python manage.py sauvgarde_bdd_stages
+  909  ls -la *.xlsx
+  910  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+  911  import os
+  912  import sys
+  913  sys.path.append('/home/webmaster/projets/mysite_backend')
+  914  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+  915  import django
+  916  django.setup()
+  917  from stages.management.commands.sauvgarde_bdd_stages import export_stages_by_ville
+  918  from stages.models import Stage, Ville, Periode
+  919  print('=== Vérification de la cohérence du script ===')
+  920  # Vérifier les données disponibles
+  921  print(f'Nombre de stages: {Stage.objects.count()}')
+  922  print(f'Nombre de villes: {Ville.objects.count()}')
+  923  print(f'Nombre de périodes: {Periode.objects.count()}')
+  924  # Tester la fonction d'export
+  925  try:
+  926      filename = export_stages_by_ville()
+  927      print(f'✅ Export réussi: {filename}')
+  928      
+  929      # Vérifier la taille du fichier
+  930      if os.path.exists(filename):
+  931          size = os.path.getsize(filename)
+  932          print(f'✅ Fichier créé - Taille: {size} bytes')
+  933      else:
+  934          print('❌ Fichier non trouvé')
+  935          
+  936  except Exception as e:
+  937      print(f'❌ Erreur lors de l\'export: {str(e)}')
+  938      import traceback
+  939      traceback.print_exc()
+  940  "
+  941  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+  942  import pandas as pd
+  943  filename = 'stages_par_ville_20251029_215122.xlsx'
+  944  print(f'=== Vérification du contenu du fichier {filename} ===')
+  945  try:
+  946      xl_file = pd.ExcelFile(filename)
+  947      print(f'✅ Feuilles disponibles: {xl_file.sheet_names}')
+  948      
+  949      for sheet_name in xl_file.sheet_names:
+  950          print(f'\n--- Feuille: {sheet_name} ---')
+  951          df = pd.read_excel(filename, sheet_name=sheet_name)
+  952          print(f'✅ Nombre de lignes: {len(df)}')
+  953          
+  954          if len(df) > 0:
+  955              print(f'✅ Colonnes: {list(df.columns)}')
+  956              if len(df) <= 5:
+  957                  print('Aperçu:')
+  958                  print(df)
+  959          else:
+  960              print('Feuille vide (normal si pas de données)')
+  961              
+  962  except Exception as e:
+  963      print(f'❌ Erreur lors de la lecture: {str(e)}')
+  964  "
+  965  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+  966  import os
+  967  import sys
+  968  sys.path.append('/home/webmaster/projets/mysite_backend')
+  969  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+  970  import django
+  971  django.setup()
+  972  from stages.management.commands.sauvgarde_bdd_stages import export_stages_by_ville
+  973  print('=== Test du script simplifié ===')
+  974  try:
+  975      filename = export_stages_by_ville()
+  976      print(f'✅ Export réussi: {filename}')
+  977      
+  978      # Vérifier le contenu
+  979      import pandas as pd
+  980      xl_file = pd.ExcelFile(filename)
+  981      print(f'✅ Feuilles: {xl_file.sheet_names}')
+  982      
+  983      # Vérifier les colonnes de la synthèse
+  984      df_synthese = pd.read_excel(filename, sheet_name='Synthèse générale')
+  985      print(f'✅ Colonnes dans la synthèse: {list(df_synthese.columns)}')
+  986      print(f'✅ Nombre de lignes: {len(df_synthese)}')
+  987      
+  988  except Exception as e:
+  989      print(f'❌ Erreur: {str(e)}')
+  990      import traceback
+  991      traceback.print_exc()
+  992  "
+  993  source .venv/bin/activate && python manage.py sauvgarde_bdd_stages
+  994  git status
+  995  git add .
+  996  git commit -m "script pour générer un fichier excel des stages enregistrés"
+  997  git log
+  998  git checkout master
+  999  git merge dev
+ 1000  git push
+ 1001  git branch
+ 1002  git checkout dev
+ 1003  exit
+ 1004  source .venv/bin/activate && python manage.py sauvgarde_bdd_stages --help
+ 1005  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python manage.py shell --settings=mysite.settings.dev -c "
+ 1006  from stages.models import Stage, Ville, Periode
+ 1007  from django.db import models
+ 1008  print('=== Test des données des stages ===')
+ 1009  # Vérifier les données disponibles
+ 1010  total_stages = Stage.objects.count()
+ 1011  print(f'Nombre total de stages: {total_stages}')
+ 1012  if total_stages > 0:
+ 1013      # Stages par ville
+ 1014      villes_avec_stages = Ville.objects.filter(ville_origine__isnull=False).annotate(
+ 1015          nb_stages=models.Count('ville_origine')
+ 1016      ).order_by('-nb_stages')
+ 1017      
+ 1018      print(f'\nStages par ville:')
+ 1019      for ville in villes_avec_stages:
+ 1020          print(f'  - {ville.ville}: {ville.nb_stages} stages')
+ 1021      
+ 1022      # Premier stage pour test
+ 1023      premier_stage = Stage.objects.select_related('ville', 'villeEcole', 'selectedPeriode').first()
+ 1024      print(f'\nPremier stage:')
+ 1025      print(f'  - CIN: {premier_stage.cin}')
+ 1026      print(f'  - Nom: {premier_stage.nom} {premier_stage.prenom}')
+ 1027      print(f'  - Ville: {premier_stage.ville.ville}')
+ 1028      print(f'  - Période: {premier_stage.selectedPeriode.periode}')
+ 1029  else:
+ 1030      print('Aucun stage trouvé dans la base de données')
+ 1031  "
+ 1032  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python manage.py shell --settings=mysite.settings.dev -c "
+ 1033  from stages.models import Stage, Ville, Periode
+ 1034  from datetime import date
+ 1035  print('=== Création de données de test ===')
+ 1036  # Créer quelques villes de test
+ 1037  ville1, created = Ville.objects.get_or_create(ville='Casablanca', defaults={'active': True})
+ 1038  ville2, created = Ville.objects.get_or_create(ville='Rabat', defaults={'active': True})
+ 1039  ville3, created = Ville.objects.get_or_create(ville='Marrakech', defaults={'active': True})
+ 1040  print(f'Villes créées: {ville1.ville}, {ville2.ville}, {ville3.ville}')
+ 1041  # Créer une période de test
+ 1042  periode, created = Periode.objects.get_or_create(
+ 1043      periode='Stage été 2025',
+ 1044      defaults={'active': True}
+ 1045  )
+ 1046  print(f'Période créée: {periode.periode}')
+ 1047  print('Données de test créées avec succès!')
+ 1048  print(f'Total villes: {Ville.objects.count()}')
+ 1049  print(f'Total périodes: {Periode.objects.count()}')
+ 1050  "
+ 1051  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+ 1052  import os
+ 1053  import sys
+ 1054  sys.path.append('/home/webmaster/projets/mysite_backend')
+ 1055  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+ 1056  import django
+ 1057  django.setup()
+ 1058  from stages.management.commands.sauvgarde_bdd_stages import export_stages_by_ville
+ 1059  print('=== Test de la fonction export_stages_by_ville ===')
+ 1060  try:
+ 1061      filename = export_stages_by_ville()
+ 1062      print(f'Fichier créé avec succès: {filename}')
+ 1063      
+ 1064      # Vérifier que le fichier existe
+ 1065      if os.path.exists(filename):
+ 1066          size = os.path.getsize(filename)
+ 1067          print(f'Taille du fichier: {size} bytes')
+ 1068          
+ 1069          # Supprimer le fichier de test
+ 1070          os.remove(filename)
+ 1071          print('Fichier de test supprimé')
+ 1072      else:
+ 1073          print('Erreur: Fichier non trouvé')
+ 1074          
+ 1075  except Exception as e:
+ 1076      print(f'Erreur lors de l\'export: {str(e)}')
+ 1077      import traceback
+ 1078      traceback.print_exc()
+ 1079  "
+ 1080  source .venv/bin/activate && pip install xlsxwriter
+ 1081  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+ 1082  import os
+ 1083  import sys
+ 1084  sys.path.append('/home/webmaster/projets/mysite_backend')
+ 1085  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+ 1086  import django
+ 1087  django.setup()
+ 1088  from stages.management.commands.sauvgarde_bdd_stages import export_stages_by_ville
+ 1089  print('=== Test de la fonction export_stages_by_ville ===')
+ 1090  try:
+ 1091      filename = export_stages_by_ville()
+ 1092      print(f'Fichier créé avec succès: {filename}')
+ 1093      
+ 1094      # Vérifier que le fichier existe
+ 1095      if os.path.exists(filename):
+ 1096          size = os.path.getsize(filename)
+ 1097          print(f'Taille du fichier: {size} bytes')
+ 1098          print('Export réussi!')
+ 1099      else:
+ 1100          print('Erreur: Fichier non trouvé')
+ 1101          
+ 1102  except Exception as e:
+ 1103      print(f'Erreur lors de l\'export: {str(e)}')
+ 1104      import traceback
+ 1105      traceback.print_exc()
+ 1106  "
+ 1107  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+ 1108  import os
+ 1109  import sys
+ 1110  sys.path.append('/home/webmaster/projets/mysite_backend')
+ 1111  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+ 1112  import django
+ 1113  django.setup()
+ 1114  from stages.management.commands.sauvgarde_bdd_stages import export_stages_by_ville
+ 1115  print('=== Test de la fonction export_stages_by_ville ===')
+ 1116  try:
+ 1117      filename = export_stages_by_ville()
+ 1118      print(f'Fichier créé avec succès: {filename}')
+ 1119      
+ 1120      # Vérifier que le fichier existe
+ 1121      if os.path.exists(filename):
+ 1122          size = os.path.getsize(filename)
+ 1123          print(f'Taille du fichier: {size} bytes')
+ 1124          print('Export réussi!')
+ 1125          
+ 1126          # Lister le contenu du répertoire courant pour voir le fichier
+ 1127          import glob
+ 1128          excel_files = glob.glob('*.xlsx')
+ 1129          print(f'Fichiers Excel trouvés: {excel_files}')
+ 1130          
+ 1131      else:
+ 1132          print('Erreur: Fichier non trouvé')
+ 1133          
+ 1134  except Exception as e:
+ 1135      print(f'Erreur lors de l\'export: {str(e)}')
+ 1136      import traceback
+ 1137      traceback.print_exc()
+ 1138  "
+ 1139  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+ 1140  import pandas as pd
+ 1141  import sys
+ 1142  # Lire le fichier Excel le plus récent
+ 1143  filename = 'stages_par_ville_20251029_211252.xlsx'
+ 1144  print(f'=== Contenu du fichier {filename} ===')
+ 1145  try:
+ 1146      # Lire toutes les feuilles
+ 1147      xl_file = pd.ExcelFile(filename)
+ 1148      print(f'Feuilles disponibles: {xl_file.sheet_names}')
+ 1149      
+ 1150      for sheet_name in xl_file.sheet_names:
+ 1151          print(f'\n--- Feuille: {sheet_name} ---')
+ 1152          df = pd.read_excel(filename, sheet_name=sheet_name)
+ 1153          print(f'Nombre de lignes: {len(df)}')
+ 1154          print(f'Colonnes: {list(df.columns)}')
+ 1155          
+ 1156          if len(df) > 0:
+ 1157              print('Aperçu des données:')
+ 1158              print(df.head())
+ 1159          else:
+ 1160              print('Feuille vide')
+ 1161              
+ 1162  except Exception as e:
+ 1163      print(f'Erreur lors de la lecture: {str(e)}')
+ 1164      import traceback
+ 1165      traceback.print_exc()
+ 1166  "
+ 1167  source .venv/bin/activate && python manage.py help | grep -A10 -B5 "sauvgarde"
+ 1168  git status
+ 1169  exit
+ 1170  source .venv/bin/activate
+ 1171  git status
+ 1172  deactivate
+ 1173  exit
+ 1174  source .venv/bin/activate
+ 1175  git log
+ 1176  git diff 7dca143cc443b199d920f30e631d97c7a967d0e3 e4de3f8376d9a11057d829b94720aff97cd4b359
+ 1177  git diff 7dca143cc443b199d920f30e631d97c7a967d0e3 e4de3f8376d9a11057d829b94720aff97cd4b359 > diff.txt
+ 1178  git log > log.txt
+ 1179  source .venv/bin/activate && python manage.py runserver --settings=mysite.settings.dev
+ 1180  python manage.py runserver
+ 1181  git status
+ 1182  git add .
+ 1183  git commit -m "amélioration du filtrage des bénéficiaires sur le formulaire OV"
+ 1184  git log
+ 1185  git branch
+ 1186  git checkout master
+ 1187  git merge dev
+ 1188  git push
+ 1189  git checkout dev
+ 1190  source .venv/bin/activate && python manage.py makemigrations
+ 1191  source .venv/bin/activate && python manage.py check
+ 1192  python manage.py runserver
+ 1193  exit
+ 1194  source .venv/bin/activate && python manage.py runserver 127.0.0.1:8001
+ 1195  git status
+ 1196  git add .
+ 1197  git commit -m "Implémentation du système de réinitialisation de mot de passe"
+ 1198  python manage.py runserver 127.0.0.1:8001
+ 1199  git status
+ 1200  git checkout master
+ 1201  git merge dev
+ 1202  git git log
+ 1203  git log
+ 1204  git push
+ 1205  git status
+ 1206  git log --oneline -5
+ 1207  git log -p --follow static/fournisseurs/js/beneficiaire_filter.js | head -50
+ 1208  git show 8cafa22f783694d2def86926afb43d7844045235:static/fournisseurs/js/beneficiaire_filter.js | grep -A10 -B5 "localeCompare"
+ 1209  git branch -a
+ 1210  git log --oneline origin/master -5
+ 1211  git show HEAD:static/fournisseurs/js/beneficiaire_filter.js | grep -A10 -B5 "localeCompare"
+ 1212  git log --oneline --follow static/fournisseurs/js/beneficiaire_filter.js
+ 1213  git check-ignore static/fournisseurs/js/beneficiaire_filter.js
+ 1214  git ls-tree HEAD static/fournisseurs/js/beneficiaire_filter.js
+ 1215  git branch
+ 1216  git checkout dev
+ 1217  exit
+ 1218  source .venv/bin/activate && python manage.py runserver 127.0.0.1:8000
+ 1219  exit
+ 1220  python3 manage.py runserver 127.0.0.1:8000
+ 1221  exit
+ 1222  source .venv/bin/activate
+ 1223  git log
+ 1224  python manage.py runserver
+ 1225  git status
+ 1226  python manage.py runserver
+ 1227  source .venv/bin/activate && python manage.py runserver
+ 1228  find . -name "login.html" -type f
+ 1229  rm /home/webmaster/projets/mysite_backend/accounts/templates/admin/login.html
+ 1230  cp /home/webmaster/projets/mysite_backend/.venv/lib/python3.11/site-packages/django/contrib/admin/templates/admin/login.html /home/webmaster/projets/mysite_backend/templates/admin/login.html
+ 1231  source .venv/bin/activate && python manage.py collectstatic --noinput
+ 1232  source .venv/bin/activate && python manage.py check --deploy
+ 1233  source .venv/bin/activate && python manage.py show_urls | grep -E "(password|reset|accounts)"
+ 1234  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+ 1235  from django.conf import settings
+ 1236  import os
+ 1237  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+ 1238  import django
+ 1239  django.setup()
+ 1240  from django.urls import reverse
+ 1241  try:
+ 1242      url = reverse('password_reset')
+ 1243      print(f'URL password_reset: {url}')
+ 1244  except Exception as e:
+ 1245      print(f'Erreur: {e}')
+ 1246  "
+ 1247  python manage.py runserver
+ 1248  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+ 1249  import os
+ 1250  import django
+ 1251  from django.conf import settings
+ 1252  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+ 1253  django.setup()
+ 1254  print('Répertoires de templates (dans l\'ordre):')
+ 1255  for i, template_engine in enumerate(settings.TEMPLATES):
+ 1256      print(f'Engine {i+1}:')
+ 1257      for j, dir_path in enumerate(template_engine['DIRS']):
+ 1258          exists = os.path.exists(dir_path)
+ 1259          login_exists = os.path.exists(os.path.join(dir_path, 'admin', 'login.html'))
+ 1260          print(f'  {j+1}. {dir_path} (existe: {exists}, login.html: {login_exists})')
+ 1261  "
+ 1262  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && python -c "
+ 1263  import os
+ 1264  import django
+ 1265  from django.conf import settings
+ 1266  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+ 1267  django.setup()
+ 1268  print('Répertoires de templates (dans l\'ordre):')
+ 1269  for i, template_engine in enumerate(settings.TEMPLATES):
+ 1270      print(f'Engine {i+1}:')
+ 1271      for j, dir_path in enumerate(template_engine['DIRS']):
+ 1272          exists = os.path.exists(dir_path)
+ 1273          login_exists = os.path.exists(os.path.join(dir_path, 'admin', 'login.html'))
+ 1274          print(f'  {j+1}. {dir_path} (existe: {exists}, login.html: {login_exists})')
+ 1275  "
+ 1276  source .venv/bin/activate && python manage.py runserver --settings=mysite.settings.dev
+ 1277  python manage.py runserver 127.0.0.1:8000
+ 1278  source .venv/bin/activate && python3 manage.py runserver --settings=mysite.settings.dev
+ 1279  source .venv/bin/activate && python3 test_caution.py
+ 1280  source .venv/bin/activate && python3 manage.py runserver --settings=mysite.settings.dev
+ 1281  exit
+ 1282  source .venv/bin/activate && python3 manage.py runserver --settings=mysite.settings.dev
+ 1283  cd /home/webmaster/projets/mysite_backend && echo '
+ 1284  @login_required
+ 1285  def caution_create(request):
+ 1286      """
+ 1287      Vue pour créer une nouvelle caution
+ 1288      """
+ 1289      if request.method == "POST":
+ 1290          form = CautionForm(request.POST, request.FILES)
+ 1291          if form.is_valid():
+ 1292              caution = form.save()
+ 1293              messages.success(request, f"Caution {caution.numero_caution} créée avec succès.")
+ 1294              return redirect("fournisseurs:caution_detail", pk=caution.pk)
+ 1295      else:
+ 1296          form = CautionForm()
+ 1297          
+ 1298          # Pré-remplir avec un bénéficiaire et/ou contrat si spécifié dans l\'URL
+ 1299  source .venv/bin/activate && python3 manage.py check
+ 1300  git status
+ 1301  exit
+ 1302  python3 manage.py runserver --settings=mysite.settings.dev
+ 1303  exit
+ 1304  git status
+ 1305  source .venv/bin/activate
+ 1306  git status
+ 1307  git restore .
+ 1308  git status
+ 1309  git diff stages/management/commands/sauvgarde_bdd_stages.py
+ 1310  git status
+ 1311  git diff stages/management/commands/sauvgarde_bdd_stages.py
+ 1312  git restore .
+ 1313  git status
+ 1314  python manage.py makemigrations fournisseurs
+ 1315  source .venv/bin/activate
+ 1316  python manage.py makemigrations fournisseurs
+ 1317  python3 manage.py makemigrations fournisseurs
+ 1318  python3 manage.py migrate fournisseurs
+ 1319  python manage.py runserver --settings=mysite.settings.dev
+ 1320  python3 manage.py check
+ 1321  mv fournisseurs/views.py fournisseurs/views/base_views.py
+ 1322  python3 manage.py check
+ 1323  python3 manage.py shell
+ 1324  git status
+ 1325  python3 manage.py runserver --settings=mysite.settings.dev
+ 1326  python3 test_caution.py
+ 1327  ls
+ 1328  cd projets
+ 1329  ls
+ 1330  git clone git@github.com:ahmerrami/organisation.git
+ 1331  cd organisation
+ 1332  mkdir backend
+ 1333  mkdir frontend
+ 1334  ls
+ 1335  cd backend
+ 1336  python3 -m venv .venv
+ 1337  ls
+ 1338  source .venv/bin/activate
+ 1339  exit
+ 1340  ls -la /home/webmaster/projets/organisation/backend/
+ 1341  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && pip install django djangorestframework django-tenants psycopg2-binary python-decouple django-cors-headers
+ 1342  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && django-admin startproject config .
+ 1343  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && python manage.py startapp core
+ 1344  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && pip freeze > requirements.txt
+ 1345  cd /home/webmaster/projets/organisation/backend && find . -type f -name "*.py" | grep -v ".venv" | grep -v "__pycache__" | sort
+ 1346  tree -L 3 -I '.venv|__pycache__|*.pyc' backend/
+ 1347  cd /home/webmaster/projets/organisation/backend && find . -type f \( -name "*.py" -o -name "*.md" -o -name "*.txt" -o -name ".env*" -o -name ".gitignore" \) ! -path "./.venv/*" ! -path "*/__pycache__/*" | sort
+ 1348  chmod +x /home/webmaster/projets/organisation/backend/create_tenant.py
+ 1349  git branch
+ 1350  git status
+ 1351  git add .
+ 1352  git commit -m "backend initialisé"
+ 1353  git push
+ 1354  git checkout -b dev
+ 1355  exit
+ 1356  source .venv/bin/activate
+ 1357  cd backend
+ 1358  source .venv/bin/activate
+ 1359  exit
+ 1360  cd webmaster
+ 1361  cd /home/projets
+ 1362  ls
+ 1363  cd projets
+ 1364  ls
+ 1365  cd organisation
+ 1366  code .
+ 1367  ls -la ~/.ssh/
+ 1368  cat ~/.ssh/id_ed25519.pub
+ 1369  cat ~/.ssh/id_ed25519_ivy.pub
+ 1370  ls
+ 1371  cd projets
+ 1372  ls
+ 1373  ./import_from_paw.sh
+ 1374  chmod +x /home/webmaster/projets/import_from_paw.sh
+ 1375  ./import_from_paw.sh
+ 1376  sudo apt-get update && sudo apt-get install -y rsync
+ 1377  apt-get update && sudo apt-get install -y rsync
+ 1378  cd ..
+ 1379  su -u
+ 1380  sudo -u
+ 1381  history
+ 1382  su -
+ 1383  ./import_from_paw.sh
+ 1384  cd projets
+ 1385  ./import_from_paw.sh
+ 1386  ls -la ~/.ssh/id_ed25519_ivy*
+ 1387  eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_ivy
+ 1388  ./import_from_paw.sh
+ 1389  su -c "apt-get update && apt-get install -y default-mysql-client"
+ 1390  su -
+ 1391  su -c "apt-get update && apt-get install -y default-mysql-client"
+ 1392  ./import_from_paw.sh
+ 1393  systemctl status mysql
+ 1394  systemctl status mariadb
+ 1395  su -c "apt-get update && apt-get install -y mariadb-server"
+ 1396  ./import_from_paw.sh
+ 1397  su -c "mysql -e \"CREATE USER IF NOT EXISTS 'webmaster'@'localhost' IDENTIFIED BY 'votre_mot_de_passe'; GRANT ALL PRIVILEGES ON mysite_pythonanywhere.* TO 'webmaster'@'localhost'; FLUSH PRIVILEGES;\""
+ 1398  ./import_from_paw.sh
+ 1399  su -c "mysql -e \"CREATE USER IF NOT EXISTS 'webmaster'@'localhost' IDENTIFIED BY 'votre_mot_de_passe_mysql'; GRANT CREATE, DROP, SELECT, INSERT, UPDATE, DELETE, ALTER, INDEX, REFERENCES ON *.* TO 'webmaster'@'localhost'; FLUSH PRIVILEGES;\""
+ 1400  su -c "mysql -e \"DROP USER IF EXISTS 'webmaster'@'localhost'; CREATE USER 'webmaster'@'localhost' IDENTIFIED BY 'webmaster123'; GRANT CREATE, DROP, SELECT, INSERT, UPDATE, DELETE, ALTER, INDEX, REFERENCES ON *.* TO 'webmaster'@'localhost'; FLUSH PRIVILEGES;\""
+ 1401  su -c "mysql -e \"DROP USER IF EXISTS 'webmaster'@'localhost'; CREATE USER 'webmaster'@'localhost' IDENTIFIED BY 'pwmysql@2025'; GRANT CREATE, DROP, SELECT, INSERT, UPDATE, DELETE, ALTER, INDEX, REFERENCES ON *.* TO 'webmaster'@'localhost'; FLUSH PRIVILEGES;\""
+ 1402  ./import_from_paw.sh
+ 1403  su -c "mysql -e \"GRANT ALL PRIVILEGES ON *.* TO 'webmaster'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;\""
+ 1404  ./import_from_paw.sh
+ 1405  exit
+ 1406  exit
+ 1407  chmod +x /home/webmaster/projets/import_db_media.sh
+ 1408  ./import_db_media.sh
+ 1409  cd projets
+ 1410  ./import_db_media.sh
+ 1411  eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_ivy
+ 1412  ./import_db_media.sh
+ 1413  cd mysite_backend
+ 1414  python manage.py runserver
+ 1415  source .venv/bin/activate
+ 1416  cd /home/webmaster/projets/mysite_backend && python3 -m venv .venv
+ 1417  source .venv/bin/activate
+ 1418  pip install -r requirements.txt
+ 1419  cd /home/webmaster/projets/mysite_backend && source .venv/bin/activate && pip install mysqlclient
+ 1420  pip install mysqlclient
+ 1421  python manage.py migrate
+ 1422  python manage.py makemigrations
+ 1423  python manage.py migrate
+ 1424  python manage.py runserver
+ 1425  git status
+ 1426  git add .
+ 1427  git commit -m "bdd mysql pour dev"
+ 1428  git branch
+ 1429  git remote -v
+ 1430  git checkout -b dev
+ 1431  git status
+ 1432  python manage.py runserver
+ 1433  (crontab -l 2>/dev/null; echo "0 8 * * 6 /home/webmaster/projets/import_db_media.sh >> /home/webmaster/import_db_media.log 2>&1") | crontab -
+ 1434  crontab -l
+ 1435  crontab -l | grep -v "^0 8 \* \* 6 /home/webmaster/projets/import_db_media.sh" > /tmp/crontab_temp && echo "0 8 * * 6 /home/webmaster/projets/import_db_media.sh >> /home/webmaster/import_db_media.log 2>&1" >> /tmp/crontab_temp && crontab /tmp/crontab_temp && rm /tmp/crontab_temp
+ 1436  crontab -l
+ 1437  crontab -l | grep -v "dire_bonjour.sh" | crontab -
+ 1438  crontab -l
+ 1439  ls -lh /home/webmaster/dire_bonjour.sh /home/webmaster/mon_script.py /home/webmaster/cron_bonjour.log 2>/dev/null
+ 1440  rm /home/webmaster/dire_bonjour.sh /home/webmaster/mon_script.py /home/webmaster/cron_bonjour.log
+ 1441  git status
+ 1442  crontab -l
+ 1443  python manage.py runserver
+ 1444  exit
+ 1445  cd projets
+ 1446  ls
+ 1447  cd mysite_backend/
+ 1448  code .
+ 1449  source .venv/bin/activate
+ 1450  git status
+ 1451  python manage.py runserver
+ 1452  git status
+ 1453  python manage.py runserver
+ 1454  git status
+ 1455  git restore .
+ 1456  python manage.py runserver
+ 1457  git status
+ 1458  git retore .
+ 1459  git restore .
+ 1460  python manage.py runserver
+ 1461  git status
+ 1462  cd ..
+ 1463  pwd
+ 1464  ls -la ..
+ 1465  grep -r "api/" ../mysite_frontend --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" --include="*.vue" | head -50
+ 1466  git status
+ 1467  git add .
+ 1468  grep -r "api/accounts" ../mysite_frontend/src --include="*.js" --include="*.jsx" --include="*.ts" --include="*.tsx" --include="*.vue" 2>/dev/null | head -20
+ 1469  grep -r "api/accounts" ../mysite_frontend/src 2>/dev/null || echo "Aucune utilisation trouvée"
+ 1470  grep -r "api/fournisseurs" ../mysite_frontend/src 2>/dev/null || echo "Aucune utilisation trouvée"
+ 1471  grep -r "api/fournisseurs\|api/accounts" ../mysite_frontend/dist 2>/dev/null | head -5 || echo "Aucune utilisation trouvée"
+ 1472  python manage.py check
+ 1473  python3 manage.py check
+ 1474  source venv/bin/activate && python manage.py check
+ 1475  ls -la | grep -E "venv|env|virtualenv"
+ 1476  source .venv/bin/activate && python manage.py check
+ 1477  git status
+ 1478  git add .
+ 1479  git commit -m "adaptation des urls"
+ 1480  git branch
+ 1481  git checkout master
+ 1482  git checkout -b backup_master4
+ 1483  git checkout master
+ 1484  git merge dev
+ 1485  git remote -v
+ 1486  git push
+ 1487  git status
+ 1488  git checkout dev
+ 1489  source .venv/bin/activate && python manage.py check
+ 1490  python manage.py runserver
+ 1491  git status
+ 1492  git add .
+ 1493  git commit -m "mise à jour des urls"
+ 1494  git checkout master
+ 1495  git merge dev
+ 1496  git push
+ 1497  git checkout dev
+ 1498  source .venv/bin/activate
+ 1499  python manage.py runserver
+ 1500  pkill -f "python.*manage.py runserver" 2>/dev/null; sleep 1; source .venv/bin/activate && python manage.py runserver
+ 1501  git status
+ 1502  git add .
+ 1503  git commit -m "permettre la lecture des fichiers media en dev"
+ 1504  git branch
+ 1505  python manage.py runserver
+ 1506  git checkout master
+ 1507  git merge dev
+ 1508  git push
+ 1509  git checkout dev
+ 1510  rm fournisseurs/tests.py
+ 1511  rm -rf fournisseurs/forms
+ 1512  source .venv/bin/activate && python manage.py check
+ 1513  ls -lh fournisseurs/fixtures/fournisseurs_backup.json
+ 1514  head -50 fournisseurs/fixtures/fournisseurs_backup.json
+ 1515  grep -c '"model":' fournisseurs/fixtures/fournisseurs_backup.json
+ 1516  grep -o '"model": "[^"]*"' fournisseurs/fixtures/fournisseurs_backup.json | sort | uniq -c | sort -rn
+ 1517  grep -r "loaddata\|dumpdata" scripts/ 2>/dev/null || echo "Aucune référence trouvée"
+ 1518  cd ..
+ 1519  rm -rf fournisseurs/fixtures
+ 1520  cd mysite_backend && pwd
+ 1521  python manage.py check
+ 1522  git status
+ 1523  python manage.runserver
+ 1524  python manage.py runserver
+ 1525  git status
+ 1526  git add .
+ 1527  git commit -m "suppression de code inutile"
+ 1528  git checkout master
+ 1529  git merge dev
+ 1530  git branch
+ 1531  git branch -D backup_master backup_master2
+ 1532  git branch
+ 1533  git branch -D backup_master3 backup_master4
+ 1534  git checkout -b backup_master
+ 1535  git checkout dev
+ 1536  git branch
+ 1537  python manage.py runserver
+ 1538  deactivate
+ 1539  exit
+ 1540  ls -lh static/fournisseurs/js/*.js | head -5
+ 1541  ls -lh mysite/static/fournisseurs/js/*.js | head -5
+ 1542  ls -ld static/ mysite/static/
+ 1543  diff -q static/fournisseurs/js/ mysite/static/fournisseurs/js/ 2>&1 | head -10
+ 1544  source .venv/bin/activate
+ 1545  python manage.py collectstatic --noinput
+ 1546  git status
+ 1547  source .venv/bin/activate && python manage.py collectstatic --noinput -v 2 2>&1 | tail -20
+ 1548  source .venv/bin/activate && python -c "from mysite.settings import dev; print('BASE_DIR:', dev.BASE_DIR); print('STATIC_ROOT:', dev.STATIC_ROOT)"
+ 1549  pwd && ls -la | grep -E "^d" | head -15
+ 1550  source .venv/bin/activate && python -c "from mysite.settings import dev; print('BASE_DIR:', dev.BASE_DIR); print('STATIC_ROOT:', dev.STATIC_ROOT)"
+ 1551  source .venv/bin/activate && python manage.py check
+ 1552  source .venv/bin/activate && python manage.py collectstatic --noinput 2>&1 | tail -5
+ 1553  ls -lh static/fournisseurs/js/*.js | head -3
+ 1554  ls -lh fournisseurs/static/fournisseurs/js/*.js 2>/dev/null | head -5 || echo "Pas de fichiers"
+ 1555  echo "=== mysite/static/fournisseurs/js/ ===" && ls -lh mysite/static/fournisseurs/js/*.js && echo -e "\n=== fournisseurs/static/fournisseurs/js/ ===" && ls -lh fournisseurs/static/fournisseurs/js/*.js
+ 1556  cp -v mysite/static/fournisseurs/js/*.js fournisseurs/static/fournisseurs/js/
+ 1557  if [ -d "mysite/static/fournisseurs/css" ]; then cp -v mysite/static/fournisseurs/css/*.css fournisseurs/static/fournisseurs/css/ 2>/dev/null || echo "Pas de fichiers CSS à synchroniser"; else echo "Pas de répertoire CSS"; fi
+ 1558  ls -la mysite/static/fournisseurs/
+ 1559  rm -rf mysite/static/
+ 1560  python manage.py collectstatic --noinput --clear 2>&1 | tail -10
+ 1561  ls -lh static/fournisseurs/js/*.js
+ 1562  python manage.py check
+ 1563  python manage.py runserver
+ 1564  git status static/ 2>&1 | head -10
+ 1565  git status static/
+ 1566  git status
+ 1567  git add .
+ 1568  git commit -m "correction gestion fichiers statics"
+ 1569  python manage.py runserver
+ 1570  ls -la media/stages | head -50
+ 1571  ls -la media/stages | sed -n '1,120p'
+ 1572  find media -maxdepth 2 -type f -iname 'D894285*' -print || true
+ 1573  source .venv/bin/activate && python manage.py check 2>&1 | tail -20
+ 1574  ls -l media/stages/D894285_Samra_lettre.pdf && stat -c '%A %U %G %y' media/stages/D894285_Samra_lettre.pdf
+ 1575  curl -I http://127.0.0.1:8000/media/stages/D894285_Samra_lettre.pdf || true
+ 1576  exit
+ 1577  source .venv/bin/activate && python manage.py check --deploy --settings=mysite.settings.prod 2>&1
+ 1578  source .venv/bin/activate && python manage.py check --deploy --settings=mysite.settings.dev 2>&1 | head -100
+ 1579  grep -n "\.env" .gitignore
+ 1580  source .venv/bin/activate && pip install safety -q && safety check --json 2>&1 | python -m json.tool 2>/dev/null | head -100 || safety check 2>&1 | head -50
+ 1581  source .venv/bin/activate && safety check --bare 2>&1
+ 1582  source .venv/bin/activate && pip list | grep -E "Django|urllib3|requests|certifi|sqlparse"
+ 1583  git ls-files | grep -E "\.env|secret|password|key|\.pem|\.p12|config\.py" || echo "Aucun fichier sensible dans git"
+ 1584  source .venv/bin/activate && python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+ 1585  source .venv/bin/activate && python manage.py check --settings=mysite.settings.dev 2>&1 | grep -E "SECRET_KEY|System check"
+ 1586  source .venv/bin/activate && python manage.py check --deploy --settings=mysite.settings.dev 2>&1 | grep -E "security.W009|System check identified"
+ 1587  cat <<'EOF' > /tmp/check_compat.txt
+ 1588  Django 4.2 LTS - Compatibilité des packages:
+ 1589  ✅ djangorestframework==3.14.0 → Compatible (min 3.12)
+ 1590  ✅ django-cors-headers==4.3.1 → Compatible (4.0+)
+ 1591  ✅ mysqlclient==2.2.4 → Compatible (2.1+)
+ 1592  ✅ Pillow==11.0.0 → Compatible
+ 1593  ✅ reportlab==4.3.1 → Compatible
+ 1594  ⚠️ django-rest-authemail==2.1.7 → À vérifier (ancienne version)
+ 1595  ⚠️ django-import-export==2.7.0 → Compatible mais 4.0+ recommandé
+ 1596  ⚠️ numpy==2.0.2 → Compatible mais attention à pandas
+ 1597  ✅ pandas==2.2.3 → Compatible avec numpy 2.0
+ 1598  EOF
+ 1599  cat /tmp/check_compat.txt
+ 1600  git checkout -b upgrade-django-4.2
+ 1601  mkdir -p backups && mysqldump -u webmaster -p'pwmysql@2025' mysite_pythonanywhere > backups/db_avant_django42_$(date +%Y%m%d_%H%M%S).sql && ls -lh backups/ | tail -5
+ 1602  source .venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt --upgrade 2>&1 | tail -30
+ 1603  source .venv/bin/activate && pip install --upgrade typing_extensions
+ 1604  source .venv/bin/activate && python -c "import django; print(f'Django version: {django.VERSION}'); print(f'Django version string: {django.get_version()}')"
+ 1605  source .venv/bin/activate && python manage.py check --settings=mysite.settings.dev 2>&1
+ 1606  source .venv/bin/activate && python manage.py makemigrations --dry-run --settings=mysite.settings.dev 2>&1
+ 1607  source .venv/bin/activate && python manage.py makemigrations --settings=mysite.settings.dev 2>&1
+ 1608  source .venv/bin/activate && python manage.py migrate --settings=mysite.settings.dev 2>&1
+ 1609  source .venv/bin/activate && timeout 10 python manage.py runserver 2>&1 || echo "Serveur démarré et arrêté après 10s"
+ 1610  source .venv/bin/activate && python manage.py shell --settings=mysite.settings.dev << 'EOF'
+ 1611  import django
+ 1612  print(f"✅ Django version: {django.get_version()}")
+ 1613  from django.contrib.auth import get_user_model
+ 1614  User = get_user_model()
+ 1615  print(f"✅ Utilisateurs: {User.objects.count()}")
+ 1616  from fournisseurs.models import Beneficiaire, Facture, OrdreVirement
+ 1617  print(f"✅ Bénéficiaires: {Beneficiaire.objects.count()}")
+ 1618  print(f"✅ Factures: {Facture.objects.count()}")
+ 1619  print(f"✅ Ordres virement: {OrdreVirement.objects.count()}")
+ 1620  from stages.models import Stage
+ 1621  print(f"✅ Stages: {Stage.objects.count()}")
+ 1622  print("\n🎉 Tous les modèles sont accessibles !")
+ 1623  EOF
+ 1624  source .venv/bin/activate && python -c "
+ 1625  import os
+ 1626  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.dev')
+ 1627  import django
+ 1628  django.setup()
+ 1629  print(f'✅ Django version: {django.get_version()}')
+ 1630  from django.contrib.auth import get_user_model
+ 1631  User = get_user_model()
+ 1632  print(f'✅ Utilisateurs: {User.objects.count()}')
+ 1633  from fournisseurs.models import Beneficiaire, Facture
+ 1634  print(f'✅ Bénéficiaires: {Beneficiaire.objects.count()}')
+ 1635  print(f'✅ Factures: {Facture.objects.count()}')
+ 1636  from stages.models import Stage
+ 1637  print(f'✅ Stages: {Stage.objects.count()}')
+ 1638  print()
+ 1639  print('🎉 Migration Django 4.2 réussie !')
+ 1640  print('   Tous les modèles sont accessibles.')
+ 1641  "
+ 1642  source .venv/bin/activate && python manage.py check --deploy --settings=mysite.settings.dev 2>&1 | head -20
+ 1643  git add . && git status
+ 1644  git commit -m "Upgrade Django 3.2 → 4.2.16 LTS
+ 1645  - Mise à jour Django: 3.2.25 → 4.2.16
+ 1646  - Mise à jour djangorestframework: 3.14.0 → 3.15.2
+ 1647  - Mise à jour django-import-export: 2.7.0 → 4.0.0
+ 1648  - Mise à jour sqlparse: 0.4.4 → 0.5.1
+ 1649  - Mise à jour asgiref: 3.7.2 → 3.8.1
+ 1650  - Mise à jour typing_extensions: 4.10.0 → 4.15.0
+ 1651  Migrations créées:
+ 1652  - aos: Alter field expiration_date
+ 1653  - fournisseurs: Alter created_by/updated_by fields
+ 1654  Tests réussis:
+ 1655  ✅ System check: no issues
+ 1656  ✅ Migrations appliquées
+ 1657  ✅ Serveur démarre correctement
+ 1658  ✅ Tous les modèles accessibles (222 bénéficiaires, 1301 factures, 526 stages)
+ 1659  ✅ Base de données sauvegardée avant migration"
+ 1660  git checkout dev && git merge upgrade-django-4.2 --no-edit
+ 1661  git push origin dev
+ 1662  git add fournisseurs/models/ordre_virement_model.py && git commit -m "fix: Déplacer mettre_a_jour_statut_factures() après super().save() pour éviter ValueError sur pk" && git push origin dev
+ 1663  git add fournisseurs/admin/ordre_virement_admin.py fournisseurs/static/fournisseurs/css/ordre_virement_admin.css && git commit -m "feat: Affichage vertical des factures dans OrdreVirement admin" && git push origin dev
+ 1664  python manage.py runserver
+ 1665  rm /home/webmaster/projets/mysite_backend/fournisseurs/static/fournisseurs/css/ordre_virement_admin.css
+ 1666  python manage.py check
+ 1667  python manage.py runserver
+ 1668  python manage.py check
+ 1669  python manage.py runserver
+ 1670  python manage.py check
+ 1671  python manage.py runserver
+ 1672  python manage.py check
+ 1673  python manage.py runserver
+ 1674  python manage.py check
+ 1675  python manage.py runserver
+ 1676  python manage.py check
+ 1677  python manage.py runserver
+ 1678  python manage.py collectstatic --noinput
+ 1679  python manage.py runserver
+ 1680  git status
+ 1681  rm /home/webmaster/projets/mysite_backend/fournisseurs/widgets.py /home/webmaster/projets/mysite_backend/fournisseurs/static/fournisseurs/css/ordre_virement_factures.css /home/webmaster/projets/mysite_backend/fournisseurs/static/fournisseurs/js/protect_factures_table.js
+ 1682  git status
+ 1683  python manage.py check
+ 1684  git status
+ 1685  python manage.py runserver
+ 1686  git add -A && git status
+ 1687  git add -A
+ 1688  git status
+ 1689  rm static/fournisseurs/css/ordre_virement_factures.css static/fournisseurs/js/protect_factures_table.js
+ 1690  git add -A && git status -s
+ 1691  cd /home/webmaster/projets/mysite_backend && git commit -m "revert: Rollback custom FactureTableWidget, restore affect_factures.js
+ 1692  - Removed custom widget implementation (FactureTableWidget)
+ 1693  - Restored simple CheckboxSelectMultiple widget
+ 1694  - Re-enabled affect_factures.js for factures display
+ 1695  - Cleaned up ordre_virement_admin.css
+ 1696  - Updated static files from Django 4.2 upgrade"
+ 1697  git push origin dev
+ 1698  python manage.py runserver
+ 1699  exit
+ 1700  source .venv/bin/activate
+ 1701  git branch
+ 1702  git status
+ 1703  git log
+ 1704  exit
+ 1705  source .venv/bin/activate && python manage.py runserver 8001
+ 1706  exit
+ 1707  source .venv/bin/activate && python manage.py runserver 8001
+ 1708  git status
+ 1709  git add .
+ 1710  git commit -m "amélioration affichage factures dans OV"
+ 1711  git checkout master
+ 1712  git merge dev
+ 1713  git branch
+ 1714  git push
+ 1715  git checkout dev
+ 1716  python manage.py runserver
+ 1717  exit
+ 1718  source .venv/bin/activate && python manage.py runserver 8001
+ 1719  python manage.py runserver
+ 1720  exit
+ 1721  git log
+ 1722  git status
+ 1723  source .venv/bin/activate
+ 1724  python manage.py runserver
+ 1725  python manage.py collectstatic --noinput
+ 1726  source .venv/bin/activate && python manage.py collectstatic --noinput
+ 1727  python manage.py runserver
+ 1728  npm run dev
+ 1729  git status
+ 1730  npm run dev
+ 1731  git log
+ 1732  git add .
+ 1733  git status
+ 1734  git commit -m "limite d'age des candidats aux stages fixée entre 18 et 35 ans"
+ 1735  git checkout master
+ 1736  git merge stages
+ 1737  git status
+ 1738  git remote -v
+ 1739  git push
+ 1740  ./deploy-s3.sh
+ 1741  exit
+ 1742  npm run dev
+ 1743  git status
+ 1744  git branch
+ 1745  git branch -D stages
+ 1746  git checkout -b stages
+ 1747  npm run dev
+ 1748  git branch
+ 1749  git diff stages
+ 1750  git checkout stages
+ 1751  npm audit --json
+ 1752  npm audit fix --force
+ 1753  npm audit
+ 1754  git status
+ 1755  cp .env.example .env
+ 1756  ls -la /home/webmaster/projets/mysite_frontend/.env
+ 1757  git status
+ 1758  git add .
+ 1759  git commit -m "correction des pb de sécurité"
+ 1760  npm run dev
+ 1761  ls -la | grep env
+ 1762  find /home/webmaster/projets/mysite_frontend -maxdepth 1 -name ".env*" -type f
+ 1763  npm run dev
+ 1764  git status
+ 1765  git log
+ 1766  git add .
+ 1767  git commit -m "url api mis dans .env"
+ 1768  git status
+ 1769  git checkout master
+ 1770  git merge stages
+ 1771  ./deploy-s3.sh
+ 1772  git remote -m
+ 1773  git remote -v
+ 1774  git push
+ 1775  git branch
+ 1776  git checkout stages
+ 1777  tail -100 /home/webmaster/import_db_media.log
+ 1778  date && ls -lh /home/webmaster/projets/import_db_media.sh
+ 1779  cat /home/webmaster/projets/import_db_media.sh
+ 1780  ls -lh ~/.ssh/id_ed25519_ivy* && ssh-keygen -y -f ~/.ssh/id_ed25519_ivy > /dev/null 2>&1 && echo "✅ Clé sans passphrase" || echo "❌ Clé avec passphrase ou erreur"
+ 1781  echo "SSH_AUTH_SOCK: $SSH_AUTH_SOCK" && ssh-add -l 2>/dev/null || echo "❌ Aucune clé chargée dans ssh-agent"
+ 1782  systemctl --user status ssh-agent 2>/dev/null || echo "❌ Pas de service ssh-agent systemd" && ls -la ~/.config/systemd/user/ 2>/dev/null || echo "Pas de services user systemd"
+ 1783  exit
+ 1784  source .venv/bin/activate
+ 1785  git status
+ 1786  python manage.py runserver
+ 1787  cd ..
+ 1788  ls
+ 1789  cat import_from_paw.sh
+ 1790  ls
+ 1791  cat import_db_media.sh 
+ 1792  ls
+ 1793  crontab -l
+ 1794  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && python manage.py runserver 0.0.0.0:8000
+ 1795  curl -H "Host: demo.localhost" http://127.0.0.1:8000/api/tenant-config/ 2>&1 | head -20
+ 1796  git status
+ 1797  exit
+ 1798  sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw organisation_db && echo "✅ La base de données organisation_db existe" || echo "❌ La base de données organisation_db n'existe pas"
+ 1799  sudo -u
+ 1800  su -u postgres psql -lqt | cut -d \| -f 1 | grep -qw organisation_db && echo "✅ La base de données organisation_db existe" || echo "❌ La base de données organisation_db n'existe pas"
+ 1801  su - postgres psql -lqt | cut -d \| -f 1 | grep -qw organisation_db && echo "✅ La base de données organisation_db existe" || echo "❌ La base de données organisation_db n'existe pas"
+ 1802  psql -U postgres -l 2>&1 || psql -l 2>&1
+ 1803  su - postgres -c "psql -lqt" | cut -d \| -f 1 | grep -w organisation_db && echo "✅ La base de données organisation_db existe" || echo "❌ La base de données organisation_db n'existe pas"
+ 1804  su -
+ 1805  su - postgres -c "psql -lqt" | cut -d \| -f 1 | grep -w organisation_db && echo "✅ La base de données organisation_db existe" || echo "❌ La base de données organisation_db n'existe pas"
+ 1806  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && python check_database.py
+ 1807  su -
+ 1808  cd /home/webmaster/projets/organisation/backend && PGPASSWORD='$$2025$$@psql' psql -U postgres -h localhost -d postgres -c "SELECT 1" 2>&1 | head -5
+ 1809  cd /home/webmaster/projets/organisation/backend && PGPASSWORD='$$2025$$@psql' psql -U postgres -h localhost -d postgres -c "SELECT datname FROM pg_database WHERE datname = 'organisation_db';"
+ 1810  cd /home/webmaster/projets/organisation/backend && PGPASSWORD='$$2025$$@psql' psql -U postgres -h localhost -d postgres -c "CREATE DATABASE organisation_db;"
+ 1811  cd /home/webmaster/projets/organisation/backend && PGPASSWORD='$$2025$$@psql' psql -U postgres -h localhost -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE organisation_db TO postgres;"
+ 1812  cd /home/webmaster/projets/organisation/backend && PGPASSWORD='$$2025$$@psql' psql -U postgres -h localhost -d postgres -c "SELECT datname, pg_size_pretty(pg_database_size(datname)) as size FROM pg_database WHERE datname = 'organisation_db';"
+ 1813  cd /home/webmaster/projets/organisation/backend && cp .env.example .env && echo "✅ Fichier .env créé"
+ 1814  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && python manage.py makemigrations
+ 1815  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && python manage.py migrate_schemas --shared
+ 1816  cd /home/webmaster/projets/organisation/backend && source .venv/bin/activate && python manage.py init_tenants
+ 1817  python manage.py createsuperuser
+ 1818  python manage.py runserver
+ 1819  python create_tenant.py
+ 1820  python manage.py runserver
+ 1821  su - echo "127.0.0.1  client1.localhost" >> /etc/hosts
+ 1822  su -
+ 1823  python manage.py runserver
+ 1824  grep -q "client1.localhost" /etc/hosts && echo "✅ L'entrée existe déjà" || echo "❌ L'entrée n'existe pas encore"
+ 1825  cat /etc/hosts
+ 1826  python manage.py runserver
+ 1827  source .venv/bin/activate && python manage.py collectstatic --noinput
+ 1828  source .venv/bin/activate && python manage.py makemigrations fournisseurs
+ 1829  source .venv/bin/activate && python manage.py migrate
+ 1830  python manage.py runserver
+ 1831  source .venv/bin/activate && python manage.py migrate fournisseurs 0013
+ 1832  python manage.py migrate fournisseurs 0013
+ 1833  python manage.py showmigrations fournisseurs | tail -5
+ 1834  rm fournisseurs/migrations/0014_facture_fournisseur_alter_facture_beneficiaire.py fournisseurs/static/fournisseurs/js/fournisseur_to_beneficiaire.js static/fournisseurs/js/fournisseur_to_beneficiaire.js
+ 1835  git status
+ 1836  git diff fournisseurs/models/facture_model.py
+ 1837  git checkout fournisseurs/models/facture_model.py fournisseurs/admin/facture_admin.py
+ 1838  git status
+ 1839  python manage.py makemigrations fournisseurs --name rename_beneficiaire_to_fournisseur
+ 1840  sed -i "s/beneficiaire/fournisseur/g" fournisseurs/admin/facture_admin.py
+ 1841  cd /home/webmaster/projets/mysite_backend/fournisseurs && find . -name "*.py" -type f -exec sed -i "s/factures_beneficiaire/factures_fournisseur/g" {} + && find . -name "*.py" -type f -exec sed -i "s/\.beneficiaire/\.fournisseur/g" {} + && find . -name "*.py" -type f -exec sed -i "s/'beneficiaire'/'fournisseur'/g" {} + && find . -name "*.py" -type f -exec sed -i 's/"beneficiaire"/"fournisseur"/g' {} +
+ 1842  cd /home/webmaster/projets/mysite_backend/fournisseurs/static && find . -name "*.js" -type f -exec sed -i "s/beneficiaire/fournisseur/g" {} + && find . -name "*.js" -type f -exec sed -i "s/Bénéficiaire/Fournisseur/g" {} +
+ 1843  python manage.py collectstatic --noinput
+ 1844  pwd && python manage.py collectstatic --noinput
+ 1845  cd ~ && cd /home/webmaster/projets/mysite_backend && python manage.py collectstatic --noinput
+ 1846  git checkout .
+ 1847  git status
+ 1848  git restore .
+ 1849  git status
+ 1850  ls -lt fournisseurs/migrations/*.py | head -5
+ 1851  python manage.py migrate fournisseurs
+ 1852  which python3
+ 1853  python3 manage.py migrate fournisseurs
+ 1854  source .venv/bin/activate && python manage.py migrate fournisseurs
+ 1855  ls -la fournisseurs/migrations/ | grep "0013\|0014"
+ 1856  mv fournisseurs/migrations/0013_facture_beneficiaire_paiement.py fournisseurs/migrations/0014_facture_beneficiaire_paiement.py
+ 1857  source .venv/bin/activate && python manage.py migrate fournisseurs
+ 1858  git status
+ 1859  python manage.py runserver
+ 1860  git status
+ 1861  deactivate
+ 1862  exit
+ 1863  git branch
+ 1864  git log
+ 1865  git checkout master
+ 1866  git log
+ 1867  git checkout dev
+ 1868  source .venv/bin/activate
+ 1869  python manage.py runserver
+ 1870  sudo tail -f /var/log/auth.log | grep ssh
+ 1871  su tail -f /var/log/auth.log | grep ssh
+ 1872  su - tail -f /var/log/auth.log | grep ssh
+ 1873  su -c 'tail -f /var/log/auth.log | grep ssh'
+ 1874  su -
+ 1875  source .venv/bin/activate
+ 1876  python manage.py runserver
+ 1877  git status
+ 1878  python manage.py makemigrations
+ 1879  python manage.py migrate
+ 1880  git status
+ 1881  git add .
+ 1882  git commit -m "choix du beneficiaire OV parmis les beneficiaires de paiement ayant des factures en attente"
+ 1883  git branch
+ 1884  git log
+ 1885  python manage.py runserver
+ 1886  source .venv/bin/activate
+ 1887  git status
+ 1888  python manage.py runserver
+ 1889  echo "$(whoami)@$(hostname -I | awk '{print $1}')"
+ 1890  ssh webmaster@ivyerrami "echo OK" 2>&1 || echo "Échec avec ivyerrami"
+ 1891  ssh webmaster@ivyerrami.ddns.net "echo OK" 2>&1 || echo "Échec avec ivyerrami.ddns.net"
+ 1892  history > history.txt

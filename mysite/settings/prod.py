@@ -30,5 +30,13 @@ DATABASES = {
 }
 
 # Configuration spécifique à la production
-MEDIA_ROOT = '/home/supratourstravel/mysite/media'  # Chemin absolu comme vous aviez
-STATIC_ROOT = '/home/supratourstravel/mysite/static'
+# Configuration de django-dbbackup
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': '/home/supratourstravel/backups/'}
+
+# Pour les médias
+MEDIABACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+MEDIABACKUP_STORAGE_OPTIONS = {'location': '/home/supratourstravel/backups/'}
+
+DBBACKUP_CLEANUP_KEEP = 1   # Conserver 1 backup local (sera transféré vers le serveur)
+MEDIABACKUP_CLEANUP_KEEP = 1  # Idem pour les médias
