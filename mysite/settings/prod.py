@@ -28,31 +28,49 @@ DATABASES = {
 }
 
 # -------------------------------
-# 🔥 BACKUP DIRECT VIA SFTP
+# 🔥 BACKUP DIRECT VIA SFTP (Django Storages)
 # -------------------------------
 
-DBBACKUP_STORAGE = 'storages.backends.sftpstorage.SFTPStorage'
-DBBACKUP_STORAGE_OPTIONS = {
-    'host': 'ivyerrami.ddns.net',
-    'params': {
-        'username': 'webmaster',
-        'private_key': '/home/supratourstravel/.ssh/id_ed25519',
+# Configuration Django Storages pour SFTP
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
-    'port': 40022,  # Ton port personnalisé
-    'path': '/home/webmaster/backups/pythonanywhere/db',  # dossier de stockage DB
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+    # Storage pour les backups DB
+    "dbbackup": {
+        "BACKEND": "storages.backends.sftpstorage.SFTPStorage",
+        "OPTIONS": {
+            "host": "ivyerrami.ddns.net",
+            "params": {
+                "username": "webmaster",
+                "key_filename": "/home/supratourstravel/.ssh/id_ed25519",
+            },
+            "port": 40022,
+            "root_path": "/home/webmaster/backups/pythonanywhere/db",
+        },
+    },
+    # Storage pour les backups média
+    "mediabackup": {
+        "BACKEND": "storages.backends.sftpstorage.SFTPStorage",
+        "OPTIONS": {
+            "host": "ivyerrami.ddns.net",
+            "params": {
+                "username": "webmaster",
+                "key_filename": "/home/supratourstravel/.ssh/id_ed25519",
+            },
+            "port": 40022,
+            "root_path": "/home/webmaster/backups/pythonanywhere/media",
+        },
+    },
 }
 
-MEDIABACKUP_STORAGE = 'storages.backends.sftpstorage.SFTPStorage'
-MEDIABACKUP_STORAGE_OPTIONS = {
-    'host': 'ivyerrami.ddns.net',
-    'params': {
-        'username': 'webmaster',
-        'private_key': '/home/supratourstravel/.ssh/id_ed25519',
-    },
-    'port': 40022,
-    'path': '/home/webmaster/backups/pythonanywhere/media',  # dossier de stockage médias
-}
+# Configuration django-dbbackup (nouvelle syntaxe v4+)
+DBBACKUP_STORAGE_ALIAS = "dbbackup"
+DBBACKUP_MEDIAFILES_STORAGE_ALIAS = "mediabackup"
 
 # On ne garde plus rien localement
 DBBACKUP_CLEANUP_KEEP = 0
-MEDIABACKUP_CLEANUP_KEEP = 0
+DBBACKUP_CLEANUP_KEEP_MEDIA = 0
