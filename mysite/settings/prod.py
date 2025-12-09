@@ -75,12 +75,12 @@ DBBACKUP_MEDIAFILES_STORAGE_ALIAS = "mediabackup"
 DBBACKUP_CONNECTORS = {
     'default': {
         'CONNECTOR': 'dbbackup.db.mysql.MysqlDumpConnector',
-        'DUMP_CMD': 'mysqldump',
-        'RESTORE_CMD': 'mysql',
-        'DUMP_SUFFIX': '.sql',  # Extension .sql
-        'DUMP_PREFIX': 'backup',
     }
 }
+
+# Extension et préfixe pour les noms de fichiers
+DBBACKUP_FILENAME_TEMPLATE = 'backup-{databasename}-{datetime}.sql'
+DBBACKUP_DATE_FORMAT = '%Y%m%d-%H%M%S'
 
 # On ne garde plus rien localement
 DBBACKUP_CLEANUP_KEEP = 0
