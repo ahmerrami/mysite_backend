@@ -15,7 +15,8 @@
 #   2. Rendre exécutable: chmod +x /home/supratourstravel/backup_media_weekly.sh
 #   3. Ajouter dans "Tasks" de PythonAnywhere:
 #      - Command: /bin/bash /home/supratourstravel/backup_media_weekly.sh
-#      - Frequency: Weekly (dimanche à 02:00 UTC recommandé)
+#      - Frequency: Daily à 02:00 UTC
+#      - Le script s'exécutera SEULEMENT le dimanche (configurable via BACKUP_DAY)
 #
 # Prérequis:
 #   - Authentification SSH par clé configurée (sans mot de passe)
@@ -60,6 +61,9 @@ DEST_DIR="${DEST_BASE_DIR}/${TIMESTAMP}"
 # Nombre de versions à conserver (10 semaines ≈ 2.5 mois)
 KEEP_VERSIONS=10
 
+# Jour de la semaine pour le backup (0=dimanche, 1=lundi, ..., 6=samedi)
+BACKUP_DAY=0  # Dimanche par défaut
+
 ################################################################################
 # Fonction: log_message
 # Description: Enregistre un message avec timestamp dans le fichier de log
@@ -68,6 +72,25 @@ KEEP_VERSIONS=10
 ################################################################################
 log_message() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+################################################################################
+# Fonction: check_day_of_week
+# Description: Vérifie si nous sommes le bon jour de la semaine pour le backup
+# Retourne: 0 si c'est le bon jour, 1 sinon
+################################################################################
+check_day_of_week() {
+    CURRENT_DAY=$(date +%w)  # 0=dimanche, 1=lundi, ..., 6=samedi
+    
+    if [ "$CURRENT_DAY" -ne "$BACKUP_DAY" ]; then
+        log_message "Aujourd'hui n'est pas le jour de backup (jour actuel: $CURRENT_DAY, jour configuré: $BACKUP_DAY)"
+        log_message "Backup hebdomadaire prévu pour: $(date -d "next sunday" +%A) (jour $BACKUP_DAY)"
+        log_message "Script terminé sans exécution du backup"
+        return 1
+    fi
+    
+    log_message "✓ Aujourd'hui est le jour de backup hebdomadaire (jour $BACKUP_DAY)"
+    return 0
 }
 
 ################################################################################
@@ -229,6 +252,16 @@ EOF
 main() {
     # Créer le dossier de log si nécessaire
     mkdir -p "$(dirname "$LOG_FILE")"
+    
+    log_message "=========================================="
+    log_message "Démarrage du script backup_media_weekly.sh"
+    log_message "=========================================="
+    
+    # Vérifier si c'est le bon jour de la semaine
+    if ! check_day_of_week; then
+        # Pas le bon jour, sortir silencieusement (code 0 = succès)
+        exit 0
+    fi
     
     # Exécuter les étapes du backup
     check_prerequisites
