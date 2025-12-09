@@ -47,8 +47,8 @@ STORAGES = {
             "params": {
                 "username": "webmaster",
                 "key_filename": "/home/supratourstravel/.ssh/id_ed25519",
+                "port": 40022,  # Port dans params
             },
-            "port": 40022,
             "root_path": "/home/webmaster/backups/pythonanywhere/db",
         },
     },
@@ -60,8 +60,8 @@ STORAGES = {
             "params": {
                 "username": "webmaster",
                 "key_filename": "/home/supratourstravel/.ssh/id_ed25519",
+                "port": 40022,  # Port dans params
             },
-            "port": 40022,
             "root_path": "/home/webmaster/backups/pythonanywhere/media",
         },
     },
