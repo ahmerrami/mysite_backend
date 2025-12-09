@@ -71,6 +71,17 @@ STORAGES = {
 DBBACKUP_STORAGE_ALIAS = "dbbackup"
 DBBACKUP_MEDIAFILES_STORAGE_ALIAS = "mediabackup"
 
+# Format SQL lisible au lieu de dump binaire
+DBBACKUP_CONNECTORS = {
+    'default': {
+        'CONNECTOR': 'dbbackup.db.mysql.MysqlDumpConnector',
+        'DUMP_CMD': 'mysqldump',
+        'RESTORE_CMD': 'mysql',
+        'DUMP_SUFFIX': '.sql',  # Extension .sql
+        'DUMP_PREFIX': 'backup',
+    }
+}
+
 # On ne garde plus rien localement
 DBBACKUP_CLEANUP_KEEP = 0
 DBBACKUP_CLEANUP_KEEP_MEDIA = 0
