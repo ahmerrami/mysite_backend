@@ -71,6 +71,10 @@ coverage.xml
 *.tmp
 *.temp
 *.~*
+history.txt
+requirements_old_backup.txt
+test_*.log
+media_test/
 
 # Build files
 *.egg-info/

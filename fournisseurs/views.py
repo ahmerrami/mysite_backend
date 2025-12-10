@@ -1,5 +1,6 @@
 # views.py
 import os
+import logging
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -13,6 +14,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
+
+logger = logging.getLogger(__name__)
 
 from .filters import get_factures_queryset
 from .models import Beneficiaire, CompteTresorerie, Contrat, OrdreVirement, Facture
@@ -142,7 +145,7 @@ def generate_ov_pdf(request, ordre_virement_id):
         logo_width, logo_height = 50 * mm, 20 * mm  # Redimensionner le logo (50mm de large, 20mm de haut)
         p.drawImage(logo, 50, height - 50 - logo_height, width=logo_width, height=logo_height, mask='auto')
     else:
-        print(f"Logo non trouvé à l'emplacement : {logo_path}")  # Avertissement si le logo est manquant
+        logger.warning(f"Logo non trouvé à l'emplacement : {logo_path}")  # Avertissement si le logo est manquant
 
     # 📄 **Première page : Détails de l'ordre de virement**
     y_position = height - 100  # Départ du texte

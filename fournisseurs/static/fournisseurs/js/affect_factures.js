@@ -126,8 +126,6 @@ document.addEventListener('DOMContentLoaded', function () {
             is_associated: Boolean(isChecked)
         };
 
-        console.log("Données envoyées :", data); // Debugging
-
         // Envoyer une requête POST pour mettre à jour l'association
         fetch(url, {
             method: 'POST',

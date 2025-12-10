@@ -1,7 +1,10 @@
+import logging
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from .models import OperationDiverse, EcritureOperation
+
+logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=EcritureOperation)
 @receiver(post_delete, sender=EcritureOperation)
@@ -12,4 +15,4 @@ def verifier_equilibre_operation(sender, instance, **kwargs):
         try:
             operation.valider()  # Vérifie et met `valide = True` si équilibrée
         except ValidationError as e:
-            print(f"Validation Error: {e}")
+            logger.error(f"Validation Error: {e}")
