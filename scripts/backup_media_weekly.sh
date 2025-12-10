@@ -58,8 +58,8 @@ LOG_FILE="/home/${PA_USER}/backups/backup_media_weekly.log"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 DEST_DIR="${DEST_BASE_DIR}/${TIMESTAMP}"
 
-# Nombre de versions à conserver (10 semaines ≈ 2.5 mois)
-KEEP_VERSIONS=10
+# Nombre de versions à conserver (4 semaines ≈ 1 mois)
+KEEP_VERSIONS=4
 
 # Jour de la semaine pour le backup (0=dimanche, 1=lundi, ..., 6=samedi)
 BACKUP_DAY=0  # Dimanche par défaut
