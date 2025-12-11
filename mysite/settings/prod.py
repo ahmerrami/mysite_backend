@@ -27,6 +27,10 @@ DATABASES = {
     }
 }
 
+# Configuration spécifique à la production
+MEDIA_ROOT = '/home/supratourstravel/mysite/media'  # Chemin absolu comme vous aviez
+STATIC_ROOT = '/home/supratourstravel/mysite/static'
+
 # -------------------------------
 # 🔥 BACKUP DIRECT VIA SFTP (Django Storages)
 # -------------------------------
