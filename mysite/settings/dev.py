@@ -9,16 +9,17 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
 
 # Configuration MySQL (base de données importée depuis PythonAnywhere)
+# Base de données
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mysite_pythonanywhere',
-        'USER': 'webmaster',
-        'PASSWORD': 'pwmysql@2025',
-        'HOST': 'localhost',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
         'PORT': '3306',
         'OPTIONS': {
-            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }

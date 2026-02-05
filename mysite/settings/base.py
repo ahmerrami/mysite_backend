@@ -53,9 +53,10 @@ INSTALLED_APPS = [
 	'omra',
 	'fournisseurs',
 	'import_export',
+	'django_extensions',
 	'operationsDiverses',
     'dbbackup',
-    
+
 ]
 INSTALLED_APPS += ['storages']
 
