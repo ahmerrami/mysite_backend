@@ -68,11 +68,12 @@ class Command(BaseCommand):
         plain_message = strip_tags(html_message)
 
         # Configuration de l'email
+        to_emails = [email.strip() for email in config('TO_DESTINATAIRES_BC', default='').split(',') if email.strip()]
         email = EmailMessage(
             subject="Suivi hebdomadaire des bons de commande non soldés",
             body=html_message,
             from_email=config('AUTHEMAIL_EMAIL_HOST_USER'),
-            to = config('TO_DESTINATAIRES_BC', default='').split(',')
+            to = to_emails
         )
         email.content_subtype = "html"
         email.send()

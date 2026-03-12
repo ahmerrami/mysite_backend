@@ -41,11 +41,12 @@ class Command(BaseCommand):
         plain_message = strip_tags(html_message)  # Version texte pour les clients mail simples
 
         # Envoyer l'email
+        to_emails = [email.strip() for email in config('TO_DESTINATAIRES_FACTURES', default='').split(',') if email.strip()]
         email = EmailMessage(
             subject="Suivi quotidien des factures impayées",
             body=html_message,
             from_email=config('AUTHEMAIL_EMAIL_HOST_USER'),
-            to = config('TO_DESTINATAIRES_FACTURES', default='').split(',')
+            to = to_emails
         )
         email.content_subtype = "html"  # Important pour le HTML
         email.send()
