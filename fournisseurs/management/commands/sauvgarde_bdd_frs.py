@@ -69,7 +69,7 @@ def send_email_with_attachment(filename, subject, body, to_emails=None):
     """
     if to_emails is None:
         # Récupérer les emails depuis .env
-        to_emails = [email.strip() for email in config('TO_EMAILS', default='').split(',') if email.strip()]
+        to_emails = [email.strip() for email in config('TO_DESTINATAIRES_BDD_FRS', default='').split(',') if email.strip()]
 
     email = EmailMessage(
         subject=subject,
