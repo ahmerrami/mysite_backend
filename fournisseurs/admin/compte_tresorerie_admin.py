@@ -2,7 +2,7 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from django import forms
-from fournisseurs.models.compte_tresorerie_model import CompteTresorerie
+from fournisseurs.models import CompteTresorerie
 from fournisseurs.admin.facture_admin import fournisseur_admin
 
 class CompteTresorerieAdminForm(forms.ModelForm):

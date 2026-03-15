@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from fournisseurs.models.contrat_model import Contrat
+from fournisseurs.models import Contrat
 from decouple import config
 
 class Command(BaseCommand):

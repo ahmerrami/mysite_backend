@@ -5,11 +5,7 @@ from django.core.mail import EmailMessage
 from decouple import config
 import pandas as pd
 
-from fournisseurs.models.beneficiaire_model import Beneficiaire
-from fournisseurs.models.compte_tresorerie_model import CompteTresorerie
-from fournisseurs.models.contrat_model import Contrat
-from fournisseurs.models.facture_model import Facture
-from fournisseurs.models.ordre_virement_model import OrdreVirement
+from fournisseurs.models import Beneficiaire, CompteTresorerie, Contrat, Facture, OrdreVirement
 
 def export_multisheet():
     """

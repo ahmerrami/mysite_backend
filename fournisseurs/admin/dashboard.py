@@ -5,7 +5,7 @@ from django.db.models import Count, Case, When, IntegerField, Sum, Q
 from django.shortcuts import render
 from django.db import models
 from django.db.models import F
-from fournisseurs.models.facture_model import Facture, Beneficiaire
+from fournisseurs.models import Facture, Beneficiaire
 
 def get_tableau_bord_data():
     # Définir les dates de référence

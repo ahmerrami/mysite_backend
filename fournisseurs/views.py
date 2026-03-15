@@ -73,7 +73,7 @@ def get_factures_all(request):
     for facture in factures:
         facture_dict = dict(facture)
         # Récupérer le libellé lisible du statut
-        from fournisseurs.models.facture_model import Facture
+        from fournisseurs.models import Facture
         facture_obj = Facture.objects.get(id=facture['id'])
         facture_dict['statut_display'] = facture_obj.get_statut_display()
         factures_list.append(facture_dict)

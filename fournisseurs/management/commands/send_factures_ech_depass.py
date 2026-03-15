@@ -8,7 +8,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.prod")
 django.setup()
 
 from django.core.management.base import BaseCommand
-from fournisseurs.models.facture_model import Facture
+from fournisseurs.models import Facture
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils import timezone

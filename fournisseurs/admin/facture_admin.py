@@ -16,7 +16,7 @@ from dateutil.relativedelta import relativedelta
 from import_export import resources, fields
 from import_export.admin import ExportMixin
 
-from fournisseurs.models.facture_model import Facture, Beneficiaire
+from fournisseurs.models import Facture, Beneficiaire
 from fournisseurs.filters import DateRangeFilter
 from .dashboard import tableau_bord_view  # Importez la vue depuis le nouveau fichier
 

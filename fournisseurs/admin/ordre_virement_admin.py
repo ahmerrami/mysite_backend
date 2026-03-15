@@ -16,10 +16,7 @@ from fournisseurs.views import generate_ov_pdf
 ###############
 
 from fournisseurs.filters import get_factures_queryset
-from fournisseurs.models.beneficiaire_model import Beneficiaire
-from fournisseurs.models.compte_tresorerie_model import CompteTresorerie
-from fournisseurs.models.ordre_virement_model import OrdreVirement
-from fournisseurs.models.facture_model import Facture
+from fournisseurs.models import Beneficiaire, CompteTresorerie, OrdreVirement, Facture
 
 from fournisseurs.admin.facture_admin import fournisseur_admin
 

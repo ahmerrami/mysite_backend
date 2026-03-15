@@ -1,7 +1,7 @@
 # admin/contrat_admin.py
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
-from ..models.contrat_model import Contrat
+from fournisseurs.models import Contrat
 
 #@admin.register(Contrat)
 from fournisseurs.admin.facture_admin import fournisseur_admin
