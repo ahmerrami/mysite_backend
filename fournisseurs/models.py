@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.conf import settings
 from django.core.validators import RegexValidator, FileExtensionValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
