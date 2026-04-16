@@ -20,6 +20,10 @@ urlpatterns = [
 	# API endpoints AJAX pour l'administration (utilisés par les fichiers .js)
 	path('api/fournisseurs/', include('fournisseurs.urls')),
 	
+
+	# Dashboard clients
+	path('clients/', include('clients.urls')),
+
 	# URLs pour l'authentification et reset password
 	path('accounts/', include('accounts.urls')),
 	

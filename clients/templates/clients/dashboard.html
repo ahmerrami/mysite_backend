@@ -1,0 +1,57 @@
+{% extends 'admin/base_site.html' %}
+{% block content %}
+<h1>Dashboard Factures (12 derniers mois)</h1>
+<p>Période : {{ start_date }} → {{ end_date }}</p>
+
+<h2>Par Client</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Client</th>
+            <th>Montant HT</th>
+            <th>Montant TVA</th>
+            <th>Montant TTC</th>
+            <th>RAS TVA</th>
+            <th>RAS IS</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in data_clients %}
+        <tr>
+            <td>{{ row.client }}</td>
+            <td>{{ row.montant_ht|floatformat:2 }}</td>
+            <td>{{ row.montant_tva|floatformat:2 }}</td>
+            <td>{{ row.montant_ttc|floatformat:2 }}</td>
+            <td>{{ row.montant_ras_tva|floatformat:2 }}</td>
+            <td>{{ row.montant_ras_is|floatformat:2 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h2>Par Fournisseur</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fournisseur</th>
+            <th>Montant HT</th>
+            <th>Montant TVA</th>
+            <th>Montant TTC</th>
+            <th>RAS TVA</th>
+            <th>RAS IS</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in data_fournisseurs %}
+        <tr>
+            <td>{{ row.fournisseur }}</td>
+            <td>{{ row.montant_ht|floatformat:2 }}</td>
+            <td>{{ row.montant_tva|floatformat:2 }}</td>
+            <td>{{ row.montant_ttc|floatformat:2 }}</td>
+            <td>{{ row.montant_ras_tva|floatformat:2 }}</td>
+            <td>{{ row.montant_ras_is|floatformat:2 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 	'django_extensions',
 	'operationsDiverses',
     'dbbackup',
+    'clients',
 
 ]
 INSTALLED_APPS += ['storages']
