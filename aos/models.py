@@ -19,6 +19,9 @@ def rename_upload_path(instance, filename, prefix):
 def rename_upload_path_ao(instance, filename):
     return rename_upload_path(instance, filename, 'ao')
 
+def default_expiration_date():
+    return timezone.now().date() + timedelta(days=21)
+
 class AO(models.Model):
     numero = models.CharField(max_length=16, unique=True)
     objet = models.CharField(max_length=255)
@@ -26,7 +29,7 @@ class AO(models.Model):
     aopdf = models.FileField(upload_to=rename_upload_path_ao, validators=[validate_file_extension])
     isActive = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    expiration_date = models.DateField(default=timezone.now() + timedelta(days=21))
+    expiration_date = models.DateField(default=default_expiration_date)
 
     class Meta:
         permissions = [
