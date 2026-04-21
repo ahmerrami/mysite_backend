@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Client, Contrat, Facture, Paiement, LigneFacture
+from django import forms
 class LigneFactureInline(admin.TabularInline):
     model = LigneFacture
     extra = 1
@@ -11,8 +12,19 @@ class ClientAdmin(admin.ModelAdmin):
     search_fields = ("nom", "email", "telephone")
     readonly_fields = ('created_by','updated_by')
 
+
+# Formulaire personnalisé pour Contrat
+class ContratForm(forms.ModelForm):
+    class Meta:
+        model = Contrat
+        fields = '__all__'
+
+    class Media:
+        js = ('admin/js/contrat_partie_liee.js',)
+
 @admin.register(Contrat)
 class ContratAdmin(admin.ModelAdmin):
+    form = ContratForm
     list_display = ("reference", "client", "date_signature", "mode_paiement", "taux_ras_tva", "taux_ras_is")
     search_fields = ("reference", "client__nom")
     list_filter = ("mode_paiement",)

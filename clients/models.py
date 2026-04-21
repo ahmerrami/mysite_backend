@@ -8,6 +8,7 @@ class Client(AuditModel):
     adresse = models.TextField(blank=True)
     email = models.EmailField(blank=True)
     telephone = models.CharField(max_length=50, blank=True)
+    partie_liee = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nom
@@ -47,6 +48,16 @@ class Contrat(AuditModel):
     is_actif = models.BooleanField(default=True)
     is_solde = models.BooleanField(default=False)
 
+    # Statut du contrat : autorisé ou non encore validé
+    STATUT_CHOICES = [
+        ("autorise", "Autorisé"),
+        ("non_valide", "Non encore validé"),
+    ]
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default="non_valide")
+
+    # Date d'accord du CA si client partie liée
+    date_accord_ca = models.DateField(null=True, blank=True, help_text="Date de l'accord du Conseil d'Administration pour les parties liées")
+
     def __str__(self):
         # Construit la chaîne complète de références depuis le contrat racine jusqu'à ce contrat
         chain = []
@@ -76,7 +87,12 @@ class Contrat(AuditModel):
                 self.is_actif = False
             else:
                 self.is_actif = True
-            super_save(*args, **kwargs)
+
+        # Validation: si le client est partie liée ET le contrat est autorisé, la date d'accord du CA doit être renseignée
+        if self.client and self.client.partie_liee and self.statut == "autorise" and not self.date_accord_ca:
+            from django.core.exceptions import ValidationError
+            raise ValidationError("La date de l'accord du CA est obligatoire pour les clients parties liées lorsque le contrat est autorisé.")
+        super_save(*args, **kwargs)
 
 class Facture(AuditModel):
     numero = models.CharField(max_length=10, unique=True, verbose_name="Numéro de facture")
