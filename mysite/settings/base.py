@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
 	'accounts',
 	'stages',
+    'stages10',
 	'aos',
 	'omra',
 	'fournisseurs',

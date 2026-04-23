@@ -14,6 +14,7 @@ urlpatterns = [
 	
 	# API endpoints actifs (utilisés par mysite_frontend)
 	path('api/stages/', include('stages.urls')),
+	path('api/stages10/', include('stages10.urls')),
 	path('api/aos/', include('aos.urls')),
 	path('api/omra/', include('omra.urls')),
 	
