@@ -1,3 +1,10 @@
+# Authentication
+django-rest-authemail==2.1.7
+
+# Backup System
+django-dbbackup==5.0.1
+django-storages[sftp]==1.14.6
+
 # Core Django
 Django==4.2.16
 
@@ -5,28 +12,30 @@ Django==4.2.16
 mysqlclient==2.2.4
 
 # Django Extensions
-djangorestframework==3.15.2
 django-cors-headers==4.6.0
 django-import-export==4.3.5
+djangorestframework==3.15.2
 tablib[xlsx,ods]==3.7.0
 
-# Backup System
-django-dbbackup==5.0.1
-django-storages[sftp]==1.14.6
-
-# Authentication
-django-rest-authemail==2.1.7
-
-# Utilities
-python-decouple==3.8
-python-dateutil==2.9.0.post0
-num2words==0.5.14
-pandas==2.3.3
-requests==2.32.5
+# Optionnels / Utilitaires supplémentaires
+defusedxml==0.7.1
+invoke==3.0.3
+odfpy==1.4.1
+openpyxl==3.1.5
+PyYAML==6.0.1
+python-ipware==3.0.0
+sqlparse==0.5.5
 
 # PDF Generation
-reportlab==4.3.1
 PyPDF2==3.0.1
+reportlab==4.3.1
 
 # Production Server
 gunicorn==23.0.0
+
+# Utilities
+num2words==0.5.14
+pandas==2.3.3
+python-decouple==3.8
+python-dateutil==2.9.0.post0
+requests==2.32.5
