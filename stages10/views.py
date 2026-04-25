@@ -39,7 +39,17 @@ class CandidatViewSet(viewsets.ModelViewSet):
         candidat = self.get_object()
         code = str(random.randint(100000, 999999))
         ValidationCode.objects.create(candidat=candidat, code=code, type='sms')
-        # TODO: Intégrer l'envoi SMS réel ici
+        api_key = getattr(settings, 'BULKSMS_API_KEY', None)
+        if api_key:
+            # Exemple d'appel à l'API bulksms.ma (adapter selon leur documentation)
+            requests.post(
+                "https://www.bulksms.ma/api/v1/sms/send",
+                data={
+                    "apiKey": api_key,
+                    "number": candidat.telephone,
+                    "msg": f"Votre code de validation: {code}"
+                }
+            )
         print(f"SMS envoyé à {candidat.telephone}: {code}")
         return Response({'detail': 'Code envoyé par SMS (simulation).'})
 
