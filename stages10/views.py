@@ -34,24 +34,6 @@ class CandidatViewSet(viewsets.ModelViewSet):
         send_mail('Code de validation', f'Votre code : {code}', from_email, [candidat.email])
         return Response({'detail': 'Code envoyé par email.'})
 
-    @action(detail=True, methods=['post'])
-    def send_sms_code(self, request, pk=None):
-        candidat = self.get_object()
-        code = str(random.randint(100000, 999999))
-        ValidationCode.objects.create(candidat=candidat, code=code, type='sms')
-        api_key = getattr(settings, 'BULKSMS_API_KEY', None)
-        if api_key:
-            # Exemple d'appel à l'API bulksms.ma (adapter selon leur documentation)
-            requests.post(
-                "https://www.bulksms.ma/api/v1/sms/send",
-                data={
-                    "apiKey": api_key,
-                    "number": candidat.telephone,
-                    "msg": f"Votre code de validation: {code}"
-                }
-            )
-        print(f"SMS envoyé à {candidat.telephone}: {code}")
-        return Response({'detail': 'Code envoyé par SMS (simulation).'})
 
     @action(detail=True, methods=['post'])
     def validate_code(self, request, pk=None):
@@ -87,6 +69,6 @@ class CandidatureViewSet(viewsets.ModelViewSet):
             candidat = Candidat.objects.get(id=candidat_id)
         except Candidat.DoesNotExist:
             return Response({'detail': 'Candidat introuvable.'}, status=400)
-        if not (candidat.email_valide and candidat.telephone_valide):
-            return Response({'detail': 'Email ou téléphone non validé.'}, status=400)
+        if not candidat.email_valide:
+            return Response({'detail': "L'email n'a pas été validé."}, status=400)
         return super().create(request, *args, **kwargs)
