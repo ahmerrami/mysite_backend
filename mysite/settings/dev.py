@@ -8,22 +8,19 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
 
-# Configuration MySQL (base de données importée depuis PythonAnywhere)
-# Base de données
+# Configuration SQLite pour le développement local
+# Base de données simple et sans dépendances externes
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
 # Configuration spécifique au développement
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Chemin relatif dans le projet
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# Backend email pour le développement (console - affiche les emails en terminal)
+# Aucune connexion SMTP requise, pas d'erreur de réseau
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

@@ -9,7 +9,8 @@ User = get_user_model()
 
 @receiver(post_save, sender=User)
 def send_random_password(sender, instance, created, **kwargs):
-    if created:
+    # Ne pas modifier les superusers (créés manuellement via createsuperuser)
+    if created and not instance.is_superuser:
 
         # Générer un mot de passe sécurisé
         random_password = get_random_string(length=12)  # Exemple : 12 caractères

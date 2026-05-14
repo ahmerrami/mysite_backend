@@ -6,7 +6,8 @@
 # Python compiled files
 *.pyc
 *.pyo
-__pycache__/
+*.pyd
+**/__pycache__/
 
 # Virtual environments
 myenv/
@@ -20,45 +21,74 @@ ENV/
 db.sqlite3
 *.sqlite3
 *.sql
-*/migrations/**  # Ignore migration files, but not the folder itself
-!*/migrations/__init__.py  # Keep the __init__.py files to preserve package structure
+*/migrations/**
+!*/migrations/__init__.py
 
-# Data files
-*.json
+# Data files (exports/imports)
 *.csv
 *.xlsx
 *.xls
 
-# Static and media files
+# Static and media files (STATIC_ROOT et MEDIA_ROOT)
+static/
 staticfiles/
 media/
 
 # Fixtures files
 */fixtures/
 
-# Environment variables
+# Environment variables - ne jamais versionner les fichiers .env
 .env
+.env.*
+!.env.example
+
+# Fichiers de clés et certificats sensibles
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# Répertoires de backup locaux
+backups/
+*.backup
 
 # IDEs and editors
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # macOS specific
 .DS_Store
 .AppleDouble
 .LSOverride
+Icon?
+._*
+.Spotlight-V8
+.Trashes
 
 # Windows specific
 Thumbs.db
+Thumbs.db:encryptable
 desktop.ini
+$RECYCLE.BIN/
 
 # Coverage reports
 htmlcov/
 .coverage
 .coverage.*
 .cache
+
+# Pytest
+.pytest_cache/
+pytest_cache/
 
 # Test reports
 nosetests.xml
@@ -80,10 +110,15 @@ media_test/
 *.egg-info/
 dist/
 build/
+*.egg
+MANIFEST
+
+# Python version
+.python-version
 
 # Node.js (if using React or other JS frameworks)
 node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 *.tsbuildinfo
