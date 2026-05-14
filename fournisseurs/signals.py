@@ -12,7 +12,7 @@ from decouple import config
 
 import os
 from .models import Facture, OrdreVirement
-from .choices import *  # Importer toutes les constantes
+from core.choices import *  # Importer toutes les constantes
 
 User = get_user_model()
 

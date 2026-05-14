@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
-from fournisseurs.models import AuditModel, CompteTresorerie, Beneficiaire
+from core.models import AuditModel
+from fournisseurs.models import CompteTresorerie, Beneficiaire
 
 class Client(AuditModel):
     id_cpt = models.CharField(max_length=8, unique=True)
@@ -8,18 +9,13 @@ class Client(AuditModel):
     adresse = models.TextField(blank=True)
     email = models.EmailField(blank=True)
     telephone = models.CharField(max_length=50, blank=True)
+    # partie_liee indique si le client est une partie liée (filiale, associé, etc.) nécessitant un accord du CA pour les contrats
     partie_liee = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nom
 
 class Contrat(AuditModel):
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="client_contrat_created_by"
-    )
-    updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="client_contrat_updated_by"
-    )
     MODES_PAIEMENT = [
         ('virement', 'Virement'),
         ('cheque', 'Chèque'),
@@ -96,12 +92,6 @@ class Contrat(AuditModel):
 
 class Facture(AuditModel):
     numero = models.CharField(max_length=10, unique=True, verbose_name="Numéro de facture")
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="client_facture_created_by"
-    )
-    updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="client_facture_updated_by"
-    )
     contrat = models.ForeignKey(
         Contrat,
         on_delete=models.CASCADE,

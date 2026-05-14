@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'authemail',
     'corsheaders',
 	'accounts',
+    'core',
 	'stages',
 	'aos',
 	'omra',
@@ -78,7 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'fournisseurs.middleware.CurrentUserMiddleware',
+    'core.middleware.CurrentUserMiddleware',
     'fournisseurs.middleware.BlockIPMiddleware',
 ]
 

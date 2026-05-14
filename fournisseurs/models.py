@@ -5,32 +5,13 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.db.models import UniqueConstraint
 from decimal import Decimal
-from fournisseurs.middleware import CurrentUserMiddleware
 from fournisseurs.validators import verifier_modifications_autorisees
-from fournisseurs.choices import *
+from core.choices import *
+from core.models import AuditModel
 
 # === MODELES ===
 
-# AuditModel
-class AuditModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="%(class)s_created_by"
-    )
-    updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="%(class)s_updated_by"
-    )
-
-    class Meta:
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        user = CurrentUserMiddleware.get_current_user()
-        if not self.pk and not self.created_by:
-            self.created_by = user
-        self.updated_by = user
-        super().save(*args, **kwargs)
+# Compatibilite: conserver le symbole AuditModel accessible depuis ce module
 
 # Beneficiaire
 class Beneficiaire(AuditModel):
