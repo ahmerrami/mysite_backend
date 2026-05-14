@@ -68,27 +68,33 @@ class Contrat(AuditModel):
         return self.parent is not None
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
-        super_save = super().save
 
-        # Si c'est un avenant (parent n'est pas None)
+        # Validation métier AVANT save
+        if self.client and self.client.partie_liee and self.statut == "autorise" and not self.date_accord_ca:
+            from django.core.exceptions import ValidationError
+            raise ValidationError("La date de l'accord du CA est obligatoire pour les clients parties liées lorsque le contrat est autorisé.")
+
+        # Cas avenant
         if self.parent is not None:
-            self.is_actif = True  # L'avenant est activé
-            super_save(*args, **kwargs)
-            # Désactiver le contrat père
+            self.is_actif = True
+            super().save(*args, **kwargs)
+
+            # Désactiver le parent
             Contrat.objects.filter(pk=self.parent.pk).update(is_actif=False)
+
         else:
-            # Si le contrat a au moins un fils (avenant), il doit être désactivé
+            # 🔑 IMPORTANT : sauvegarder d'abord pour avoir un PK
+            super().save(*args, **kwargs)
+
+            # Maintenant on peut utiliser avenants
             if self.avenants.exists():
                 self.is_actif = False
             else:
                 self.is_actif = True
 
-        # Validation: si le client est partie liée ET le contrat est autorisé, la date d'accord du CA doit être renseignée
-        if self.client and self.client.partie_liee and self.statut == "autorise" and not self.date_accord_ca:
-            from django.core.exceptions import ValidationError
-            raise ValidationError("La date de l'accord du CA est obligatoire pour les clients parties liées lorsque le contrat est autorisé.")
-        super_save(*args, **kwargs)
+            # Mise à jour après logique
+            super().save(update_fields=["is_actif"])
+
 
 class Facture(AuditModel):
     numero = models.CharField(max_length=10, unique=True, verbose_name="Numéro de facture")
