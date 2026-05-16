@@ -5,6 +5,28 @@ class LigneFactureInline(admin.TabularInline):
     model = LigneFacture
     extra = 1
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset_class = super().get_formset(request, obj, **kwargs)
+
+        # Préremplit les taux des nouvelles lignes depuis le contrat de la facture.
+        if not obj or not obj.contrat_id:
+            return formset_class
+
+        default_rates = {
+            'taux_tva': obj.contrat.taux_de_TVA,
+            'taux_ras_tva': obj.contrat.taux_ras_tva,
+            'taux_ras_is': obj.contrat.taux_ras_is,
+        }
+
+        class PrefilledLigneFactureFormSet(formset_class):
+            def _construct_form(self, i, **form_kwargs):
+                if i >= self.initial_form_count():
+                    initial = form_kwargs.get('initial', {})
+                    form_kwargs['initial'] = {**default_rates, **initial}
+                return super()._construct_form(i, **form_kwargs)
+
+        return PrefilledLigneFactureFormSet
+
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):

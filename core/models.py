@@ -12,6 +12,7 @@ class AuditModel(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        verbose_name="Créé par",
         related_name="%(app_label)s_%(class)s_created_by",
     )
     updated_by = models.ForeignKey(
@@ -19,6 +20,7 @@ class AuditModel(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        verbose_name="Mis à jour par",
         related_name="%(app_label)s_%(class)s_updated_by",
     )
 

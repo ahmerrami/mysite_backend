@@ -1,7 +1,12 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 from core.models import AuditModel
-from fournisseurs.models import CompteTresorerie, Beneficiaire
+from core.choices import TYPE_MODE_PAIEMENT
+from fournisseurs.models import CompteTresorerie
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
+from calendar import monthrange
 
 class Client(AuditModel):
     id_cpt = models.CharField(max_length=8, unique=True)
@@ -10,7 +15,7 @@ class Client(AuditModel):
     email = models.EmailField(blank=True)
     telephone = models.CharField(max_length=50, blank=True)
     # partie_liee indique si le client est une partie liée (filiale, associé, etc.) nécessitant un accord du CA pour les contrats
-    partie_liee = models.BooleanField(default=False)
+    partie_liee = models.BooleanField(default=False,verbose_name="Tout contrat nécessite validation",)
 
     def __str__(self):
         return self.nom
@@ -22,9 +27,18 @@ class Contrat(AuditModel):
     ]
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='contrats')
     entite_client = models.CharField(max_length=255, null=True, blank=True)
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='avenants')
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='avenants',verbose_name="Contrat parent ou dernier avenant")
     reference = models.CharField(max_length=100, unique=True)
-    date_signature = models.DateField()
+    date_signature = models.DateField(verbose_name="Date de signature")
+    objet = models.CharField(max_length=500, verbose_name="Objet du contrat", null=True, blank=True)
+    date_debut = models.DateField(verbose_name="Date de début", null=True, blank=True)
+    date_fin = models.DateField(verbose_name="Date de fin", null=True, blank=True)
+    delai_paiement = models.CharField(
+        max_length=10,
+        choices=TYPE_MODE_PAIEMENT,
+        default='90JFDM',
+        verbose_name="Délai de paiement",
+    )
     mode_paiement = models.CharField(max_length=10, choices=MODES_PAIEMENT)
     compte_bancaire = models.ForeignKey(
         CompteTresorerie,
@@ -37,12 +51,44 @@ class Contrat(AuditModel):
         },
         related_name='contrats_encaissement'
     )
-    montant_ht = models.DecimalField(max_digits=12, decimal_places=2)
-    taux_ras_tva = models.DecimalField(max_digits=5, decimal_places=2, default=75)
-    taux_ras_is = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    scan_pdf = models.FileField(upload_to='clients/contrats/', blank=True, null=True, help_text="Scan du contrat (PDF)")
-    is_actif = models.BooleanField(default=True)
-    is_solde = models.BooleanField(default=False)
+    montant_ht = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2,
+        verbose_name="Montant HT",
+    )
+    taux_de_TVA = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=20,
+        verbose_name="Taux de TVA par defaut",
+        validators=[MinValueValidator(0), MaxValueValidator(25)]
+    )
+    taux_ras_tva = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=75,
+        verbose_name="Taux de RAS TVA par defaut",
+    )
+    taux_ras_is = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        verbose_name="Taux de RAS IS par defaut",
+    )
+    scan_pdf = models.FileField(
+        upload_to='clients/contrats/',
+        blank=True,
+        null=True,
+        help_text="Scan du contrat (PDF)"
+    )
+    is_actif = models.BooleanField(
+        default=True,
+        verbose_name="Contrat actif",
+    )
+    is_solde = models.BooleanField(
+        default=False,
+        verbose_name="Contrat soldé",
+    )
 
     # Statut du contrat : autorisé ou non encore validé
     STATUT_CHOICES = [
@@ -52,7 +98,11 @@ class Contrat(AuditModel):
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default="non_valide")
 
     # Date d'accord du CA si client partie liée
-    date_accord_ca = models.DateField(null=True, blank=True, help_text="Date de l'accord du Conseil d'Administration pour les parties liées")
+    date_accord_ca = models.DateField(
+        null=True, 
+        blank=True,
+        verbose_name="Date de l'accord du CA"
+    )
 
     def __str__(self):
         # Construit la chaîne complète de références depuis le contrat racine jusqu'à ce contrat
@@ -104,8 +154,9 @@ class Facture(AuditModel):
         related_name='factures',
         limit_choices_to={'is_actif': True,'is_solde': False}
     )
-    date_emission = models.DateField()
-    date_echeance = models.DateField()
+    date_realisation = models.DateField(verbose_name="Date de base d'échéance", null=True, blank=True)
+    date_emission = models.DateField(verbose_name="Date d'émission")
+    date_echeance = models.DateField(verbose_name="Date d'échéance")
     # Les montants et taux sont désormais gérés par les lignes de facture
     scan_pdf = models.FileField(upload_to='clients/factures/', blank=True, null=True, help_text="Scan de la facture (PDF)")
     paiement = models.ForeignKey(
@@ -116,10 +167,61 @@ class Facture(AuditModel):
         related_name='factures'
     )
 
+    @staticmethod
+    def _calculate_echeance(date_de_depart, delai_paiement):
+        """
+        Calcule la date d'échéance basée sur un délai de paiement.
+        
+        Formats supportés:
+        - "15J" : ajoute 15 jours
+        - "30JFDM" : ajoute 30 jours et va au dernier jour du mois
+        - etc.
+        
+        Args:
+            date_de_depart (date): La date de référence
+            delai_paiement (str): Le délai (ex: "30J", "30JFDM", "90JFDM")
+            
+        Returns:
+            date: La date d'échéance calculée
+        """
+        if not delai_paiement or not date_de_depart:
+            return None
+            
+        if delai_paiement.endswith('JFDM'):
+            # Fin de mois : ajouter N jours, puis aller au dernier jour du mois
+            jours = int(delai_paiement.replace('JFDM', ''))
+            date_temp = date_de_depart + timedelta(days=jours)
+            # Récupérer le dernier jour du mois
+            last_day = monthrange(date_temp.year, date_temp.month)[1]
+            return date_temp.replace(day=last_day)
+        elif delai_paiement.endswith('J'):
+            # Jours simples
+            jours = int(delai_paiement.replace('J', ''))
+            return date_de_depart + timedelta(days=jours)
+        
+        return None
+
+    @property
+    def echeance_contractuelle(self):
+        """
+        Calcule l'échéance contractuelle basée sur :
+        - date_realisation si elle est saisie, sinon date_emission
+        - le délai de paiement du contrat parent
+        
+        Returns:
+            date: La date d'échéance contractuelle calculée
+        """
+        date_de_depart = self.date_realisation or self.date_emission
+        if not date_de_depart or not self.contrat:
+            return None
+        return self._calculate_echeance(date_de_depart, self.contrat.delai_paiement)
+
     def save(self, *args, **kwargs):
         # Validation : la facture doit être liée à un contrat sans fils (pas d'avenant)
         if self.contrat.avenants.exists():
             raise ValueError("La facture doit être liée à un contrat sans avenant (pas de fils).")
+        if self.date_echeance != self.echeance_contractuelle:
+            raise ValueError("La date d'échéance doit être calculée automatiquement en fonction du contrat et ne peut pas être modifiée manuellement.")
         super().save(*args, **kwargs)
 
     @property
