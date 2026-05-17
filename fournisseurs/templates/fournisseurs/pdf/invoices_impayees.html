@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Suivi des Factures Impayées - Fournisseurs</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 14mm 12mm 16mm 12mm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            color: #2d3748;
+            font-size: 10pt;
+            line-height: 1.35;
+        }
+        .report-shell {
+            width: 100%;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+        }
+        .header-title {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #1a365d;
+            padding: 0 0 6px 0;
+            border-bottom: 2px solid #2b6cb0;
+        }
+        .header-meta {
+            text-align: right;
+            font-size: 10pt;
+            color: #718096;
+            vertical-align: bottom;
+        }
+        .intro-box {
+            background-color: #edf2f7;
+            border: 1px solid #d6e2ee;
+            padding: 8px 10px;
+            margin-bottom: 14px;
+            color: #4a5568;
+        }
+        .kpi-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+        }
+        .kpi-card {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px 8px;
+            text-align: center;
+            vertical-align: top;
+        }
+        .kpi-spacer {
+            width: 8px;
+            border: 0;
+            background-color: transparent;
+        }
+        .kpi-label {
+            font-size: 9pt;
+            color: #4a5568;
+            text-transform: uppercase;
+            padding-bottom: 5px;
+        }
+        .kpi-value {
+            font-size: 15pt;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .section-title {
+            background-color: #2b6cb0;
+            color: #ffffff;
+            font-size: 12pt;
+            font-weight: bold;
+            padding: 7px 9px;
+            margin: 18px 0 0 0;
+        }
+        .section-subtitle {
+            color: #718096;
+            font-size: 9pt;
+            margin: 5px 0 8px 0;
+        }
+        .data-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .data-table th {
+            background-color: #2b6cb0;
+            color: white;
+            font-size: 10pt;
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #2b6cb0;
+        }
+        .data-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            font-size: 10pt;
+            vertical-align: top;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .empty-state {
+            text-align: center;
+            color: #4a5568;
+            background-color: #f7fafc;
+            padding: 12px;
+        }
+        .empty-state.ok {
+            color: #2f855a;
+            background-color: #f0fff4;
+        }
+        .footer-note {
+            margin-top: 8px;
+            font-size: 8.5pt;
+            color: #718096;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-shell">
+        <table class="header-table">
+            <tr>
+                <td class="header-title">Suivi Factures Impayées - Fournisseurs</td>
+                <td class="header-meta">Généré le {{ data.date_generation|date:"d/m/Y" }}</td>
+            </tr>
+        </table>
+
+        <div class="intro-box">
+            Synthèse des factures impayées auprès de vos fournisseurs.
+        </div>
+
+        <table class="kpi-table">
+            <tr>
+                <td class="kpi-card">
+                    <div class="kpi-label">Nombre Factures</div>
+                    <div class="kpi-value">{{ data.nombre_factures }}</div>
+                </td>
+                <td class="kpi-spacer"></td>
+                <td class="kpi-card">
+                    <div class="kpi-label">Montant Total</div>
+                    <div class="kpi-value">{{ data.total_montant|floatformat:2 }} DH</div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="section-title">Liste des Factures Impayées</div>
+        <div class="section-subtitle">État détaillé de toutes les factures en attente de paiement.</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th width="25%">Fournisseur</th>
+                    <th width="18%">N° Facture</th>
+                    <th width="15%" class="text-center">Date Facture</th>
+                    <th width="15%" class="text-center">Échéance</th>
+                    <th width="15%" class="text-center">Statut</th>
+                    <th width="12%" class="text-right">Montant</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for facture in data.factures %}
+                <tr style="background-color: {% cycle '#ffffff' '#f7fafc' %};">
+                    <td>{{ facture.beneficiaire }}</td>
+                    <td>{{ facture.num_facture }}</td>
+                    <td class="text-center">{{ facture.date_facture|date:"d/m/Y" }}</td>
+                    <td class="text-center">{{ facture.date_echeance|date:"d/m/Y" }}</td>
+                    <td class="text-center">{{ facture.statut }}</td>
+                    <td class="text-right">{{ facture.montant|floatformat:2 }} DH</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state ok">Aucune facture impayée. Excellente position ! 🎉</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if data.factures %}
+            <tfoot>
+                <tr style="background-color: #e7f3e7; font-weight: bold;">
+                    <td colspan="5" class="text-right">TOTAL</td>
+                    <td class="text-right">{{ data.total_montant|floatformat:2 }} DH</td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+
+        <div class="footer-note">Rapport généré automatiquement par le système de gestion.</div>
+    </div>
+</body>
+</html>
