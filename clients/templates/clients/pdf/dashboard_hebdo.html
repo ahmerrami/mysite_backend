@@ -154,12 +154,12 @@
             <tr>
                 <td class="kpi-card">
                     <div class="kpi-label">Total restant dû</div>
-                    <div class="kpi-value">{{ data.montant_total_du|floatformat:2 }} €</div>
+                    <div class="kpi-value">{{ data.montant_total_du|floatformat:2 }} MAD</div>
                 </td>
                 <td class="kpi-spacer"></td>
                 <td class="kpi-card alert">
                     <div class="kpi-label">Montant Échu</div>
-                    <div class="kpi-value">{{ data.montant_echu_retard|floatformat:2 }} €</div>
+                    <div class="kpi-value">{{ data.montant_echu_retard|floatformat:2 }} MAD</div>
                 </td>
                 <td class="kpi-spacer"></td>
                 <td class="kpi-card alert">
@@ -169,7 +169,7 @@
                 <td class="kpi-spacer"></td>
                 <td class="kpi-card">
                     <div class="kpi-label">Prévisions 30j</div>
-                    <div class="kpi-value" style="color: #2f855a;">+ {{ data.previsions_30j|floatformat:2 }} €</div>
+                    <div class="kpi-value" style="color: #2f855a;">+ {{ data.previsions_30j|floatformat:2 }} MAD</div>
                 </td>
             </tr>
         </table>
@@ -193,7 +193,7 @@
                     <td>{{ f.numero }}</td>
                     <td class="text-center">{{ f.date_echeance|date:"d/m/Y" }}</td>
                     <td class="text-center"><span class="badge-danger">{{ f.jours_retard }} jours</span></td>
-                    <td class="text-right">{{ f.net_a_payer|floatformat:2 }} €</td>
+                    <td class="text-right">{{ f.net_a_payer|floatformat:2 }} MAD</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -221,11 +221,11 @@
                     <td>Paiement #{{ p.id }}</td>
                     <td>{{ p.client.nom }}</td>
                     <td class="text-center">{{ p.date_encaissement|date:"d/m/Y" }}</td>
-                    <td class="text-right">{{ p.montant_total|floatformat:2 }} €</td>
+                    <td class="text-right">{{ p.montant_total|floatformat:2 }} MAD</td>
                     {% if p.solde < 0 %}
-                    <td class="text-right" style="color: #c53030; font-weight: bold;">{{ p.solde|floatformat:2 }} €</td>
+                    <td class="text-right" style="color: #c53030; font-weight: bold;">{{ p.solde|floatformat:2 }} MAD</td>
                     {% else %}
-                    <td class="text-right" style="color: #2b6cb0; font-weight: bold;">{{ p.solde|floatformat:2 }} €</td>
+                    <td class="text-right" style="color: #2b6cb0; font-weight: bold;">{{ p.solde|floatformat:2 }} MAD</td>
                     {% endif %}
                 </tr>
                 {% empty %}
