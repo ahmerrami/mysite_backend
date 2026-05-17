@@ -1,5 +1,5 @@
 from django.utils import timezone
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, F
 from datetime import timedelta
 from .models import Facture, Paiement
 
@@ -16,7 +16,7 @@ def get_weekly_dashboard_data():
     # En pratique, filtrons proprement via votre propriété fact_payee (convertie en logique QuerySet)
     # Pour faire simple et performant en SQL, on cherche celles sans paiement ou non soldées :
     factures_en_cours = Facture.objects.filter(
-        Q(paiement__isnull=True) | Q(paiement__montant_total__ne=F('paiement__montant_factures')) # selon votre logique métier exacte
+        Q(paiement__isnull=True) | ~Q(paiement__montant_total=F('paiement__montant_factures')) # selon votre logique métier exacte
     ).select_related('contrat', 'contrat__client', 'paiement').prefetch_related('lignes')
 
     # Filtrage en Python si la logique de solde est complexe, ou directement via QuerySets :
