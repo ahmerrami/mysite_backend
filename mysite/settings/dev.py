@@ -1,6 +1,7 @@
 
 ##settings/dev.py
 from .base import *
+from decouple import config
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -21,6 +22,7 @@ DATABASES = {
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Chemin relatif dans le projet
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-# Backend email pour le développement (console - affiche les emails en terminal)
-# Aucune connexion SMTP requise, pas d'erreur de réseau
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Backend email pour le développement:
+# - console par defaut (affiche les emails en terminal)
+# - peut etre force en SMTP via EMAIL_BACKEND dans .env
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')

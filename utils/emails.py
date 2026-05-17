@@ -30,6 +30,8 @@ def generer_et_envoyer_dashboard_hebdo():
     )
 
     to_emails = [email.strip() for email in config('TO_DESTINATAIRES_BC', default='').split(',') if email.strip()]
+    if not to_emails:
+        raise ValueError("Aucun destinataire configure dans TO_DESTINATAIRES_BC.")
     
     email = EmailMessage(
         subject=sujet,
@@ -43,4 +45,4 @@ def generer_et_envoyer_dashboard_hebdo():
     email.attach(nom_fichier, pdf_file, 'application/pdf')
     
     # 6. Envoyer !
-    email.send()
+    return email.send()
