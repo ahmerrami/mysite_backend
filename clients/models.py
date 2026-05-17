@@ -284,6 +284,7 @@ class LigneFacture(models.Model):
     @property
     def net_a_payer(self):
         return self.montant_ttc - self.montant_ras_tva - self.montant_ras_is
+
 class Paiement(AuditModel):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='paiements')
     compte_bancaire = models.ForeignKey(
@@ -296,7 +297,7 @@ class Paiement(AuditModel):
         },
         related_name='paiements_encaissement'
     )
-    montant_total = models.DecimalField(max_digits=12, decimal_places=2)
+    montant_total = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Montant total du paiement")
     date_encaissement = models.DateField()
 
     def __str__(self):
