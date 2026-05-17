@@ -111,6 +111,9 @@
             font-size: 10pt;
             vertical-align: top;
         }
+        .data-table tbody tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .badge-danger {
@@ -188,7 +191,7 @@
             </thead>
             <tbody>
                 {% for f in data.factures_en_retard %}
-                <tr style="background-color: {% cycle '#ffffff' '#f7fafc' %};">
+                <tr>
                     <td>{{ f.client }}</td>
                     <td>{{ f.numero }}</td>
                     <td class="text-center">{{ f.date_echeance|date:"d/m/Y" }}</td>
@@ -217,7 +220,7 @@
             </thead>
             <tbody>
                 {% for p in data.paiements_anormaux %}
-                <tr style="background-color: {% cycle '#ffffff' '#f7fafc' %};">
+                <tr>
                     <td>Paiement #{{ p.id }}</td>
                     <td>{{ p.client.nom }}</td>
                     <td class="text-center">{{ p.date_encaissement|date:"d/m/Y" }}</td>

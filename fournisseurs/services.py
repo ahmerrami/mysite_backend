@@ -7,9 +7,7 @@ def get_suppliers_invoices_data():
     """Collecte les données des factures impayées des fournisseurs."""
     aujourd_hui = timezone.now().date()
     
-    factures = Facture.objects.filter(
-        statut__in=['non_payee', 'payee_partiellement']
-    ).select_related('beneficiaire').order_by('date_echeance')
+    factures = Facture.objects.exclude(statut='payee').select_related('beneficiaire').order_by('date_echeance')
     
     total_montant = sum(f.mnt_net_apayer or 0 for f in factures)
     
@@ -37,8 +35,7 @@ def get_suppliers_overdue_invoices_data():
     aujourd_hui = timezone.now().date()
     date_limite = aujourd_hui + timedelta(days=5)
     
-    factures = Facture.objects.filter(
-        statut__in=['non_payee', 'payee_partiellement'],
+    factures = Facture.objects.exclude(statut='payee').filter(
         date_echeance__lte=date_limite
     ).select_related('beneficiaire').order_by('date_echeance')
     
