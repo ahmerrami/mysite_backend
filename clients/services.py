@@ -1,5 +1,4 @@
 from django.utils import timezone
-from django.db.models import Sum, Q, F
 from datetime import timedelta
 from .models import Facture, Paiement
 
@@ -7,19 +6,8 @@ def get_weekly_dashboard_data():
     aujourdhui = timezone.now().date()
     prochains_30_jours = aujourdhui + timedelta(days=30)
     
-    # 1. Récupérer toutes les factures non payées (en optimisant les requêtes)
-    # On filtre les factures qui n'ont pas de paiement lié OU dont le paiement n'est pas soldé
-    factures_non_payees = Facture.objects.filter(
-        Q(paiement__isnull=True) | Q(paiement__montant_total__lt=Sum('contrat__factures__lignes__montant_ht')) # Simplifié ici pour la logique métier
-    ).prefetch_related('lignes', 'contrat__client')
-
-    # En pratique, filtrons proprement via votre propriété fact_payee (convertie en logique QuerySet)
-    # Pour faire simple et performant en SQL, on cherche celles sans paiement ou non soldées :
-    factures_en_cours = Facture.objects.filter(
-        Q(paiement__isnull=True) | ~Q(paiement__montant_total=F('paiement__montant_factures')) # selon votre logique métier exacte
-    ).select_related('contrat', 'contrat__client', 'paiement').prefetch_related('lignes')
-
-    # Filtrage en Python si la logique de solde est complexe, ou directement via QuerySets :
+    # Filtrage principal en Python via les propriétés métier (fact_payee/net_a_payer).
+    # Cela évite les expressions ORM sur des propriétés non mappées en base.
     toutes_factures = Facture.objects.select_related('contrat', 'contrat__client', 'paiement').prefetch_related('lignes')
     
     factures_non_soldees = []
