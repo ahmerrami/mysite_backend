@@ -122,7 +122,7 @@ class OrdreVirementAdmin(ImportExportModelAdmin):
         js = (
             'admin/js/jquery.init.js',
             'fournisseurs/js/compte_tresorerie_filter.js',
-            'fournisseurs/js/beneficiaire_filter.js?v=4',
+            'fournisseurs/js/beneficiaire_filter.js',
             'fournisseurs/js/affect_factures.js'
         )
 
